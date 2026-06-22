@@ -18,37 +18,54 @@ enum AppTab {
 @Observable
 class AppRouteManager {
     var currentTab: AppTab = .home
-    var showAd: Bool = true // 控制廣告是否顯示，預設一開始使用時為 true
+    var showAd: Bool = false      // 控制全螢幕廣告是否顯示
+    var isSubscribed: Bool = false // 模擬使用者的訂閱狀態（如果付費了就不跳廣告）
     
-    // 自訂判斷邏輯：例如從背景返回、或特定事件觸發時再次顯示廣告
-    func triggerAdConditional() {
-        // 這裡可以寫你的自訂判斷，滿足條件才執行
-        let shouldShow = true
-        if shouldShow {
+    /// 統一的廣告觸發檢查點
+    func tryTriggerAd(force: Bool = false) {
+        // 條件一：如果使用者已經訂閱，直接攔截，絕對不跳廣告
+        guard !isSubscribed else { return }
+        
+        // 條件二：如果是強制觸發（例如 App 剛啟動）
+        if force {
+            print("應顯示廣告")
             showAd = true
+            return
         }
+        
     }
 }
 
 struct RootContainerView: View {
-    // 3. 宣告路由管理器
     @State private var routeManager = AppRouteManager()
+    // 監聽 App 的生命週期狀態（前景/背景）
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         ZStack {
-            // ─── 第一層：主程式內容（底部 Toolbar 系統） ───
-            MainAppLayoutView(routeManager: routeManager)
+            // 下層：主程式（包含三個分頁）
+            MainAppLayoutView()
             
-            // ─── 第二層：覆蓋型廣告頁 ───
-            // 使用 if 條件判斷，當條件滿足時，直接覆蓋在最上層
+            // 上層：全螢幕廣告
             if routeManager.showAd {
-                AdvertisementView(routeManager: routeManager)
-                    // 加入流暢的淡入淡出動畫
-                    .transition(.opacity)
+                AdvertisementView()
+                    .transition(.opacity) // 輕量淡入淡出
             }
         }
-        // 確保狀態改變時的動畫效果
         .animation(.easeInOut, value: routeManager.showAd)
+        // 💡 觸發點 1：App 一開啟時偵測
+        .onAppear {
+            routeManager.tryTriggerAd(force: true)
+        }
+        // 💡 觸發點 2：使用者滑掉 App 去回訊息，再次返回 App 時自訂偵測
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                // 從背景返回前景時，進行自訂判斷（例如距離上次觸發超過 1 小時才跳）
+                routeManager.tryTriggerAd(force: false)
+            }
+        }
+        // 將管理器注入環境，讓所有分頁及其深層子網頁都能直接存取
+        .environment(routeManager)
     }
 }
 
@@ -71,27 +88,32 @@ enum SettingsRoute: Hashable {
 
 // ─── 2. 主程式佈局（三個頁面 + 獨立導航棧） ───
 struct MainAppLayoutView: View {
-    @Bindable var routeManager: AppRouteManager
+    // 1. 💡 移除原本的 @Bindable var routeManager
+    // 如果這一個外殼層本身「不需要」讀寫 Tab 狀態或廣告狀態，這裡甚至不用宣告任何變數！
     
-    // 為每個 Tab 宣告獨立的 Path 狀態，用以精確控制該分頁的返回歷史
+    // 每個 Tab 獨立的導航棧歷史紀錄依舊保留
     @State private var homePath: [HomeRoute] = []
     @State private var discoverPath: [DiscoverRoute] = []
     @State private var settingsPath: [SettingsRoute] = []
     
+    // 用於綁定 TabView 的預設選中頁面（改用本地狀態即可，除非你想從外部強迫轉跳 Tab）
+    @State private var currentTab: AppTab = .home
+    
     var body: some View {
-        TabView(selection: $routeManager.currentTab) {
+        // 2. 💡 綁定本地的 currentTab
+        TabView(selection: $currentTab) {
             
             // ─── 分頁一：桌布首頁 ───
             NavigationStack(path: $homePath) {
-                WallpaperHomeView()
+                WallpapersView() // 裡面就是你寫的上層標籤與雙排網格
                     .navigationTitle("桌布首頁")
-                    // 攔截分頁一的路由
                     .navigationDestination(for: HomeRoute.self) { route in
                         switch route {
                         case .wallpaperDetail(let id):
                             WallpaperDetailView(wallpaperId: id)
                         case .authorProfile(let name):
-                            AuthorProfileView(name: name)
+                            // 這裡可以導向我們剛剛寫的深層作者頁
+                            DeepAuthorProfileView(authorName: name)
                         }
                     }
             }
@@ -102,7 +124,6 @@ struct MainAppLayoutView: View {
             NavigationStack(path: $discoverPath) {
                 DiscoverHomeView()
                     .navigationTitle("探索")
-                    // 攔截分頁二的路由
                     .navigationDestination(for: DiscoverRoute.self) { route in
                         switch route {
                         case .categoryList(let type):
@@ -115,9 +136,8 @@ struct MainAppLayoutView: View {
             
             // ─── 分頁三：設定頁 ───
             NavigationStack(path: $settingsPath) {
-                SettingsHomeView(routeManager: routeManager)
+                SettingsHomeView() // 💡 參數拿掉！讓它自己去獨立檔案抓環境變數
                     .navigationTitle("設定")
-                    // 攔截分頁三的路由
                     .navigationDestination(for: SettingsRoute.self) { route in
                         switch route {
                         case .privacyPolicy:
@@ -131,6 +151,13 @@ struct MainAppLayoutView: View {
             .tag(AppTab.settings)
         }
     }
+}
+
+// ─── 修正 Preview 寫法 ───
+#Preview {
+    MainAppLayoutView()
+        // 💡 關鍵：因為子網頁會去抓環境變數，預覽時必須幫它注入一個假管理器，才不會閃退
+        .environment(AppRouteManager())
 }
 
 // ─── 三、 各分頁內部的視圖實作與跳轉語法 ───
@@ -187,14 +214,16 @@ struct CategoryListView: View {
 
 // 【分頁三的內容】
 struct SettingsHomeView: View {
-    var routeManager: AppRouteManager
+    // 讀取全域路由管理器
+    @Environment(AppRouteManager.self) private var routeManager
+    
     var body: some View {
         List {
             NavigationLink("隱私權政策", value: SettingsRoute.privacyPolicy)
             NavigationLink("升級高級會員", value: SettingsRoute.accountUpgrade)
             
             Button("觸發自訂廣告") {
-                routeManager.triggerAdConditional()
+                routeManager.tryTriggerAd(force: true)
             }
             .foregroundColor(.red)
         }
@@ -203,7 +232,8 @@ struct SettingsHomeView: View {
 
 // ─── 廣告頁面 ───
 struct AdvertisementView: View {
-    var routeManager: AppRouteManager
+    // 讀取全域路由管理器
+    @Environment(AppRouteManager.self) private var routeManager
     @State private var countdown = 5 // 廣告倒數計時
     
     var body: some View {
@@ -259,7 +289,26 @@ struct PageThreeView: View {
     var routeManager: AppRouteManager
     var body: some View {
         Button("手動觸發廣告（模擬自訂判斷）") {
-            routeManager.triggerAdConditional()
+            routeManager.tryTriggerAd(force: true)
         }
+    }
+}
+
+
+struct DeepAuthorProfileView: View {
+    // 不管多深，只要宣告這行就能直接抓到最外層的環境
+    @Environment(AppRouteManager.self) private var routeManager
+    let authorName: String
+    
+    var body: some View {
+        VStack {
+            Text("創作者：\(authorName)")
+            
+            Button("追蹤創作者") {
+                // 💡 觸發點 4：深層互動觸發
+                routeManager.tryTriggerAd(force: true)
+            }
+        }
+        .navigationTitle("作者專頁")
     }
 }

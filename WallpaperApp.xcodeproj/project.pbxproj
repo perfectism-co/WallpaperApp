@@ -10,7 +10,7 @@
 		9A5B10142FE6D263008449A0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9A5B10102FE6D263008449A0 /* Assets.xcassets */; };
 		9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B10122FE6D263008449A0 /* WallpaperAppApp.swift */; };
 		9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B10172FE6D833008449A0 /* AppRouteManager.swift */; };
-		9A5B101B2FE6E229008449A0 /* WallpaperHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B101A2FE6E229008449A0 /* WallpaperHomeView.swift */; };
+		9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379002FE7DE6900FE6851 /* WallpapersView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,7 +18,7 @@
 		9A5B10102FE6D263008449A0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9A5B10122FE6D263008449A0 /* WallpaperAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperAppApp.swift; sourceTree = "<group>"; };
 		9A5B10172FE6D833008449A0 /* AppRouteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouteManager.swift; sourceTree = "<group>"; };
-		9A5B101A2FE6E229008449A0 /* WallpaperHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WallpaperHomeView.swift; path = ../ViewModel/WallpaperHomeView.swift; sourceTree = "<group>"; };
+		9AA379002FE7DE6900FE6851 /* WallpapersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpapersView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,7 +70,7 @@
 		9A5B101C2FE7B5D4008449A0 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				9A5B101A2FE6E229008449A0 /* WallpaperHomeView.swift */,
+				9AA379002FE7DE6900FE6851 /* WallpapersView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -148,7 +148,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */,
-				9A5B101B2FE6E229008449A0 /* WallpaperHomeView.swift in Sources */,
+				9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */,
 				9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

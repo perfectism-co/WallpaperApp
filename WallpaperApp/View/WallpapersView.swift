@@ -1,8 +1,8 @@
 //
-//  WallpaperHomeView.swift
+//  WallpapersView.swift
 //  WallpaperApp
 //
-//  Created by macmini on 2026/6/20.
+//  Created by macmini on 2026/6/21.
 //
 
 import SwiftUI
@@ -17,7 +17,7 @@ enum WallpaperTag: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
-struct WallpaperHomeView: View {
+struct WallpapersView: View {
     // 2. 追蹤目前選中的上方標籤
     @State private var selectedSubTag: WallpaperTag = .featured
     // 用於標籤列的滾動定位
@@ -128,5 +128,5 @@ struct WallpaperGridView: View {
 }
 
 #Preview {
-    WallpaperHomeView()
+    WallpapersView()
 }
