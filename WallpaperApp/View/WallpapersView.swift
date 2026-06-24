@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// 1. 定義上方標籤的枚舉
 enum WallpaperTag: String, CaseIterable, Identifiable {
     case featured = "Featured"
     case wallpapers = "Wallpapers"
@@ -18,115 +17,171 @@ enum WallpaperTag: String, CaseIterable, Identifiable {
 }
 
 struct WallpapersView: View {
-    // 2. 追蹤目前選中的上方標籤
     @State private var selectedSubTag: WallpaperTag = .featured
-    // 用於標籤列的滾動定位
-    @Namespace private var animationNamespace
-    
+    @Namespace private var glassBubbleNamespace
+    @State private var showb: Bool = false
+    @State private var showc: Bool = false
+    let enableScrollableTab = true
+        
     var body: some View {
-        VStack(spacing: 0) {
-            // ─── 頂部左右滑動標籤列 ───
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 20) {
-                        ForEach(WallpaperTag.allCases) { tag in
-                            VStack(spacing: 8) {
-                                Text(tag.rawValue)
-                                    .font(.system(size: 16, weight: selectedSubTag == tag ? .bold : .medium))
-                                    .foregroundColor(selectedSubTag == tag ? .primary : .secondary)
-                                
-                                // 選中時的底部底線指示器
-                                if selectedSubTag == tag {
-                                    Color.primary
-                                        .frame(height: 2)
-                                        .matchedGeometryEffect(id: "underline", in: animationNamespace)
-                                } else {
-                                    Color.clear
-                                        .frame(height: 2)
-                                }
-                            }
-                            .id(tag) // 設定 ID 供自動捲動使用
-                            .onTapGesture {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    selectedSubTag = tag
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                .frame(height: 44)
-                // 當下方滑動換頁時，上方標籤列會自動跟著滾動到可見區域
-                .onChange(of: selectedSubTag) { _, newTag in
-                    withAnimation {
-                        proxy.scrollTo(newTag, anchor: .center)
-                    }
-                }
+        
+        ReusableTabView(
+            tabs: WallpaperTag.allCases,
+            selectedTab: $selectedSubTag,
+            isTabBarScrollable: enableScrollableTab,
+            tabTitle: { tab in tab.rawValue } // 告訴套件如何取得每個 Tab 的文字
+        ) { tab in
+            // 使用 @ViewBuilder 根據目前的 tab 回傳對應的畫面
+            switch tab {
+            case .featured:
+                WallpaperGridView(tag: "Featured內容")
+            case .wallpapers:
+                WallpaperGridView(tag: "Wallpapers內容")
+            case .summer:
+                WallpaperGridView(tag: "Summer內容")
+            case .render3D:
+                WallpaperGridView(tag: "3D Render內容")
             }
-            
-            Divider()
-            
-            // ─── 下方可左右滑動的分頁內容 ───
-            TabView(selection: $selectedSubTag) {
-                // Featured 內容
-                WallpaperGridView(tag: "Featured 內容")
-                    .tag(WallpaperTag.featured)
-                
-                // Wallpapers 內容
-                WallpaperGridView(tag: "Wallpapers 內容")
-                    .tag(WallpaperTag.wallpapers)
-                
-                // Summer 內容
-                WallpaperGridView(tag: "Summer 內容")
-                    .tag(WallpaperTag.summer)
-                
-                // 3D Render 內容
-                WallpaperGridView(tag: "3D 內容")
-                    .tag(WallpaperTag.render3D)
+        } content2: {
+            // 第二個閉包：對應 content2() 的底部置底自訂內容
+            VStack {
+                Group{
+                    Text("Happy Evety Day")
+                        .font(.title2).padding(.bottom, 4)
+                    Text("這是從外部傳入的 content2 內容 /n wkepw[dsdsfl,l;g;f.hlglf;dh.;'h'g;h,;'cv.h;'vb.g,h;lfg,h;gb,c;glflgh;'gh kdlfk;cg,fgfl;  f;kf;g。 ;fgl;fgk,;xcgff klf;gk;flhk;gf")
+                        .font(.callout)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            // 💡 關鍵條件：將 TabView 改為左右分頁滑動模式，並隱藏原本底部的圓點指示器
-            .tabViewStyle(.page(indexDisplayMode: .never))
+            .padding().padding(.bottom, 20)
         }
+        
     }
 }
 
-// ─── 模擬錄影中的雙排網格視圖 ───
 struct WallpaperGridView: View {
     let tag: String
-    
-    // 定義雙排網格佈局
-    let columns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10)
-    ]
+//    let columns = [
+//        GridItem(.flexible(), spacing: 10),
+//        GridItem(.flexible(), spacing: 10)
+//    ]
     
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(1...10, id: \.self) { index in
-                    // 點擊後依然可以透過原本定義好的 NavigationLink 跳轉
-                    NavigationLink(value: HomeRoute.wallpaperDetail(id: "\(tag)_\(index)")) {
-                        VStack(alignment: .leading) {
-                            // 模擬桌布圖片
-                            Color.gray.opacity(0.3)
-                                .aspectRatio(0.7, contentMode: .fit)
-                                .cornerRadius(8)
-                                .overlay(
-                                    Text("\(tag) #\(index)")
-                                        .font(.caption)
-                                        .bold()
-                                        .foregroundColor(.secondary),
-                                    alignment: .center
-                                )
-                        }
-                    }
+        ZStack{
+            Image("myImageName")
+                .resizable()           // 1. 允許圖片改變大小
+                .scaledToFill()        // 2. 保持長寬比並填滿空間
+                .frame(maxWidth: .infinity, maxHeight: .infinity) // 3. 設定目標區域大小
+                .clipped()             // 4. 裁切超出框架的部分
+                .ignoresSafeArea(.container, edges: .all)
+            VStack{
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [.black.opacity(0), .black.opacity(0.3)]),
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                    )
+                    .frame(height: 300)
+                Spacer()
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [.black.opacity(0), .black.opacity(0.5)]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 550)
+            }
+            .ignoresSafeArea(.all)
+            
+            
+//                .overlay(
+//                    Text("123")
+//                        .font(.caption)
+//                        .bold()
+//                        .foregroundColor(.white) // 建議改為白色或加上陰影以提升在圖片上的辨識度
+//                        .padding(4)
+//                        .background(Color.black.opacity(0.5)) // 加上半透明黑色底色讓文字更清晰
+//                        .cornerRadius(4),
+//                    alignment: .center
+//                )
+        }
+        
+//        ScrollView(showsIndicators: false) {
+//            LazyVGrid(columns: columns, spacing: 10) {
+//                ForEach(1...10, id: \.self) { index in
+//                    NavigationLink(value: HomeRoute.wallpaperDetail(id: "\(tag)_\(index)")) {
+//                        Image("myImageName")
+//                            .resizable()
+//                            // 1. 設定圖片比例與填充模式
+//                            .aspectRatio(0.7, contentMode: .fill)
+//                            // 2. 裁切掉超出設定比例的圖片邊緣
+//                            .clipped()
+//                            // 3. 在最外層加上圓角，確保所有內容都被正確裁切
+//                            .cornerRadius(8)
+//                            // 4. 若圖片有透明區域，可在此補上灰色背景
+//                            .background(Color.gray.opacity(0.3))
+//                            // 5. 疊加文字
+//                            .overlay(
+//                                Text("\(tag) #\(index)")
+//                                    .font(.caption)
+//                                    .bold()
+//                                    .foregroundColor(.white) // 建議改為白色或加上陰影以提升在圖片上的辨識度
+//                                    .padding(4)
+//                                    .background(Color.black.opacity(0.5)) // 加上半透明黑色底色讓文字更清晰
+//                                    .cornerRadius(4),
+//                                alignment: .center
+//                            )
+//                    }
+//                }
+//            }
+//        }
+//        .ignoresSafeArea(.container, edges: .all)
+    }
+}
+
+
+#Preview("無廣告狀態") {
+    // 1. 建立一個專屬於這個預覽的管理器
+    let previewManager = AppRouteManager()
+    
+    // 2. 為了讓你「直接看到三個分頁」，我們將 showAd 預設改為 false
+    previewManager.showAd = false
+    
+    // 3. 根據你的需求：只檢查是否訂閱。這裡設定為訂閱 (true)
+    previewManager.isSubscribed = true
+    
+    // 4. 💡 關鍵：不要直接返回 MainAppLayoutView，而是返回 RootContainerView 的外殼
+    // 但因為 RootContainerView 內部自己有用 @State 宣告一個全域的 manager 蓋過去了，
+    // 為了讓外面的 previewManager 能夠控制它，最標準的預覽測試寫法是：
+    return RootContainerView_PreviewWrapper(manager: previewManager)
+}
+
+
+
+#Preview {
+    // 預覽時必須包裹在 NavigationStack 中，才能正確模擬導航欄穿透效果
+    NavigationStack {
+        WallpapersView()
+            .navigationTitle("Wallpapers")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: HomeRoute.self) { route in
+                switch route {
+                case .wallpaperDetail(let id):
+                    WallpaperDetailView(wallpaperId: id)
+                case .authorProfile(let name):
+                    // 這裡可以導向我們剛剛寫的深層作者頁
+                    DeepAuthorProfileView(authorName: name)
                 }
             }
-            .padding()
-        }
     }
+    .environment(AppRouteManager())
 }
 
 #Preview {
     WallpapersView()
 }
+

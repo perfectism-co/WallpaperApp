@@ -22,7 +22,7 @@ struct WallpaperAppApp: App {
     RootContainerView()
 }
 
-#Preview("無廣告狀態（但點擊按鈕仍會觸發廣告）") {
+#Preview("無廣告狀態") {
     // 1. 建立一個專屬於這個預覽的管理器
     let previewManager = AppRouteManager()
     

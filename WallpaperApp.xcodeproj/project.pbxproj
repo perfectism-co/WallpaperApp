@@ -11,6 +11,12 @@
 		9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B10122FE6D263008449A0 /* WallpaperAppApp.swift */; };
 		9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B10172FE6D833008449A0 /* AppRouteManager.swift */; };
 		9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379002FE7DE6900FE6851 /* WallpapersView.swift */; };
+		9AA379032FE9204100FE6851 /* AdvertisementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379022FE9204100FE6851 /* AdvertisementView.swift */; };
+		9AA379052FE975F500FE6851 /* eCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379042FE975F500FE6851 /* eCardHomeView.swift */; };
+		9AA379072FE98E7800FE6851 /* ButtonTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379062FE98E7800FE6851 /* ButtonTest.swift */; };
+		9AA379092FEA372900FE6851 /* CustomTabViewD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379082FEA372900FE6851 /* CustomTabViewD.swift */; };
+		9AA3790B2FEA3B6700FE6851 /* CustomTabViewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3790A2FEA3B6000FE6851 /* CustomTabViewTest.swift */; };
+		9AA3790D2FEA577800FE6851 /* CustomTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3790C2FEA577100FE6851 /* CustomTabView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +25,12 @@
 		9A5B10122FE6D263008449A0 /* WallpaperAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperAppApp.swift; sourceTree = "<group>"; };
 		9A5B10172FE6D833008449A0 /* AppRouteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouteManager.swift; sourceTree = "<group>"; };
 		9AA379002FE7DE6900FE6851 /* WallpapersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpapersView.swift; sourceTree = "<group>"; };
+		9AA379022FE9204100FE6851 /* AdvertisementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvertisementView.swift; sourceTree = "<group>"; };
+		9AA379042FE975F500FE6851 /* eCardHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eCardHomeView.swift; sourceTree = "<group>"; };
+		9AA379062FE98E7800FE6851 /* ButtonTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonTest.swift; sourceTree = "<group>"; };
+		9AA379082FEA372900FE6851 /* CustomTabViewD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabViewD.swift; sourceTree = "<group>"; };
+		9AA3790A2FEA3B6000FE6851 /* CustomTabViewTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabViewTest.swift; sourceTree = "<group>"; };
+		9AA3790C2FEA577100FE6851 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,9 +82,23 @@
 		9A5B101C2FE7B5D4008449A0 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				9AA379102FEB649B00FE6851 /* Compoments */,
 				9AA379002FE7DE6900FE6851 /* WallpapersView.swift */,
+				9AA379022FE9204100FE6851 /* AdvertisementView.swift */,
+				9AA379042FE975F500FE6851 /* eCardHomeView.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		9AA379102FEB649B00FE6851 /* Compoments */ = {
+			isa = PBXGroup;
+			children = (
+				9AA3790C2FEA577100FE6851 /* CustomTabView.swift */,
+				9AA3790A2FEA3B6000FE6851 /* CustomTabViewTest.swift */,
+				9AA379082FEA372900FE6851 /* CustomTabViewD.swift */,
+				9AA379062FE98E7800FE6851 /* ButtonTest.swift */,
+			);
+			path = Compoments;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -147,9 +173,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AA379032FE9204100FE6851 /* AdvertisementView.swift in Sources */,
+				9AA379072FE98E7800FE6851 /* ButtonTest.swift in Sources */,
 				9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */,
+				9AA3790D2FEA577800FE6851 /* CustomTabView.swift in Sources */,
 				9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */,
+				9AA379052FE975F500FE6851 /* eCardHomeView.swift in Sources */,
+				9AA3790B2FEA3B6700FE6851 /* CustomTabViewTest.swift in Sources */,
 				9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */,
+				9AA379092FEA372900FE6851 /* CustomTabViewD.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

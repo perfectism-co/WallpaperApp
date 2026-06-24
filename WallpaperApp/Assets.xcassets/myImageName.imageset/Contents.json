@@ -1,0 +1,21 @@
+{
+  "images" : [
+    {
+      "filename" : "Rococo Architecture（洛可可）_4_2026-06-22_15-09-33_-1109038905027733.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

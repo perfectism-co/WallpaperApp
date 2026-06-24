@@ -10,8 +10,8 @@ import SwiftUI
 // 1. 定義底部三個分頁的枚舉
 enum AppTab {
     case home
-    case discover
-    case settings
+    case eCard
+    case faq
 }
 
 // 2. 建立一個全局或局部管理的狀態（使用現代 @Observable 宏）
@@ -36,6 +36,8 @@ class AppRouteManager {
     }
 }
 
+
+// MARK: RootContainerView
 struct RootContainerView: View {
     @State private var routeManager = AppRouteManager()
     // 監聽 App 的生命週期狀態（前景/背景）
@@ -77,24 +79,25 @@ enum HomeRoute: Hashable {
     case authorProfile(name: String)
 }
 
-enum DiscoverRoute: Hashable {
+enum eCardRoute: Hashable {
     case categoryList(type: String)
 }
 
-enum SettingsRoute: Hashable {
+enum FAQRoute: Hashable {
     case privacyPolicy
     case accountUpgrade
 }
 
 // ─── 2. 主程式佈局（三個頁面 + 獨立導航棧） ───
+// MARK: - MainAppLayoutView
 struct MainAppLayoutView: View {
     // 1. 💡 移除原本的 @Bindable var routeManager
     // 如果這一個外殼層本身「不需要」讀寫 Tab 狀態或廣告狀態，這裡甚至不用宣告任何變數！
     
     // 每個 Tab 獨立的導航棧歷史紀錄依舊保留
     @State private var homePath: [HomeRoute] = []
-    @State private var discoverPath: [DiscoverRoute] = []
-    @State private var settingsPath: [SettingsRoute] = []
+    @State private var eCardPath: [eCardRoute] = []
+    @State private var FAQPath: [FAQRoute] = []
     
     // 用於綁定 TabView 的預設選中頁面（改用本地狀態即可，除非你想從外部強迫轉跳 Tab）
     @State private var currentTab: AppTab = .home
@@ -106,7 +109,8 @@ struct MainAppLayoutView: View {
             // ─── 分頁一：桌布首頁 ───
             NavigationStack(path: $homePath) {
                 WallpapersView() // 裡面就是你寫的上層標籤與雙排網格
-                    .navigationTitle("桌布首頁")
+                    .navigationTitle("Wallpapers")
+                    .navigationBarTitleDisplayMode(.inline)
                     .navigationDestination(for: HomeRoute.self) { route in
                         switch route {
                         case .wallpaperDetail(let id):
@@ -120,25 +124,25 @@ struct MainAppLayoutView: View {
             .tabItem { Label("首頁", systemImage: "photo") }
             .tag(AppTab.home)
             
-            // ─── 分頁二：探索頁 ───
-            NavigationStack(path: $discoverPath) {
-                DiscoverHomeView()
-                    .navigationTitle("探索")
-                    .navigationDestination(for: DiscoverRoute.self) { route in
+            // ─── 分頁二：eCard頁 ───
+            NavigationStack(path: $eCardPath) {
+                eCardHomeView()
+                    .navigationDestination(for: eCardRoute.self) { route in
                         switch route {
                         case .categoryList(let type):
                             CategoryListView(categoryType: type)
                         }
                     }
             }
-            .tabItem { Label("探索", systemImage: "magnifyingglass") }
-            .tag(AppTab.discover)
+            .tabItem { Label("eCard", systemImage: "star") }
+            .tag(AppTab.eCard)
             
-            // ─── 分頁三：設定頁 ───
-            NavigationStack(path: $settingsPath) {
-                SettingsHomeView() // 💡 參數拿掉！讓它自己去獨立檔案抓環境變數
-                    .navigationTitle("設定")
-                    .navigationDestination(for: SettingsRoute.self) { route in
+            // ─── 分頁三：FAQ頁 ───
+            NavigationStack(path: $FAQPath) {
+                FAQHomeView() // 💡 參數拿掉！讓它自己去獨立檔案抓環境變數
+                    .navigationTitle("FAQ")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationDestination(for: FAQRoute.self) { route in
                         switch route {
                         case .privacyPolicy:
                             Text("隱私權條款內容...")
@@ -147,9 +151,10 @@ struct MainAppLayoutView: View {
                         }
                     }
             }
-            .tabItem { Label("設定", systemImage: "gearshape") }
-            .tag(AppTab.settings)
+            .tabItem { Label("FAQ", systemImage: "book") }
+            .tag(AppTab.faq)
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 }
 
@@ -161,17 +166,6 @@ struct MainAppLayoutView: View {
 }
 
 // ─── 三、 各分頁內部的視圖實作與跳轉語法 ───
-
-// 【分頁一的內容】
-//struct WallpaperHomeView: View {
-//    var body: some View {
-//        VStack(spacing: 20) {
-//            // 使用 NavigationLink 並帶入 value
-//            NavigationLink("點擊查看 4K 貓咪桌布", value: HomeRoute.wallpaperDetail(id: "cat_4k"))
-//            NavigationLink("查看創作者 Alex", value: HomeRoute.authorProfile(name: "Alex"))
-//        }
-//    }
-//}
 
 struct WallpaperDetailView: View {
     let wallpaperId: String
@@ -194,33 +188,17 @@ struct AuthorProfileView: View {
     }
 }
 
-// 【分頁二的內容】
-struct DiscoverHomeView: View {
-    var body: some View {
-        List {
-            NavigationLink("動漫風格", value: DiscoverRoute.categoryList(type: "Anime"))
-            NavigationLink("風景寫實", value: DiscoverRoute.categoryList(type: "Landscape"))
-        }
-    }
-}
 
-struct CategoryListView: View {
-    let categoryType: String
-    var body: some View {
-        Text("這裡全是 \(categoryType) 的桌布列表")
-            .navigationTitle(categoryType)
-    }
-}
 
 // 【分頁三的內容】
-struct SettingsHomeView: View {
+struct FAQHomeView: View {
     // 讀取全域路由管理器
     @Environment(AppRouteManager.self) private var routeManager
     
     var body: some View {
         List {
-            NavigationLink("隱私權政策", value: SettingsRoute.privacyPolicy)
-            NavigationLink("升級高級會員", value: SettingsRoute.accountUpgrade)
+            NavigationLink("隱私權政策", value: FAQRoute.privacyPolicy)
+            NavigationLink("升級高級會員", value: FAQRoute.accountUpgrade)
             
             Button("觸發自訂廣告") {
                 routeManager.tryTriggerAd(force: true)
@@ -230,57 +208,6 @@ struct SettingsHomeView: View {
     }
 }
 
-// ─── 廣告頁面 ───
-struct AdvertisementView: View {
-    // 讀取全域路由管理器
-    @Environment(AppRouteManager.self) private var routeManager
-    @State private var countdown = 5 // 廣告倒數計時
-    
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea() // 廣告通常為全螢幕背景
-            
-            VStack {
-                HStack {
-                    Spacer()
-                    // 跳過廣告按鈕
-                    Button(action: {
-                        routeManager.showAd = false // 關閉廣告，直接露出底層的 TabView
-                    }) {
-                        Text("跳過 \(countdown)s")
-                            .font(.subheadline)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.white.opacity(0.3))
-                            .foregroundColor(.white)
-                            .cornerRadius(16)
-                    }
-                    .padding()
-                }
-                
-                Spacer()
-                
-                Text("這是蓋台廣告內容")
-                    .font(.largeTitle)
-                    .foregroundColor(.white)
-                    .bold()
-                
-                Spacer()
-            }
-        }
-        .onAppear {
-            // 模擬倒數計時自動關閉
-            Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-                if countdown > 1 {
-                    countdown -= 1
-                } else {
-                    timer.invalidate()
-                    routeManager.showAd = false // 倒數結束自動關閉
-                }
-            }
-        }
-    }
-}
 
 // ─── 其他分頁的 Placeholder ───
 struct PageOneView: View { var body: some View { Text("頁面一內容") } }
