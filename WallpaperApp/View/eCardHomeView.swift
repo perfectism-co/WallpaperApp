@@ -41,7 +41,7 @@ struct eCardHomeView: View {
                     
                     VStack {
                         Color.clear.frame(height: 43)
-                        // 1. 畫面預覽：將所有狀態傳入獨立 struct（使用 $ 傳遞 FocusState 的 Binding）
+                        
                         eCardVer1
                     }
                     
@@ -76,7 +76,18 @@ struct eCardHomeView: View {
                     
                 }
             
-                
+                // 一鍵分享按鈕：每次點擊分享選單彈出時，ShareLink 會動態觸發這個 Image
+                ShareLink(
+                    item: renderCardToImage(),
+                    preview: SharePreview("自製桌布", image: renderCardToImage())
+                ) {
+                    Label("一鍵分享圖片", systemImage: "square.and.arrow.up")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .clipShape(Capsule())
+                }
                 // 👇 加入這段測試用的高度佔位符，把頁面撐開！
                 ForEach(0..<20) { i in
                     RoundedRectangle(cornerRadius: 15)
@@ -133,6 +144,31 @@ struct eCardHomeView: View {
         }
     }
     
+    
+    // 呼叫純靜態的 SnapshotCard，傳入純數值
+    @MainActor
+    private func renderCardToImage() -> Image {
+        // 改為調用純靜態、無互動元件的 Snapshot View
+        let cardToRender = WallpaperSnapshotCard(
+            cardTitle: cardTitle,
+            cardBodyText: cardBodyText,
+            selectedFont: selectedFont,
+            selectedTitleFont: selectedTitleFont
+        )
+        
+        let renderer = ImageRenderer(content: cardToRender)
+        
+        // 輸出解析度乘數：3.0 代表輸出實體像素 900x900，完美防禦視網膜螢幕鋸齒
+        renderer.scale = 3.0
+        
+        // 直接安全提取圖片
+        if let cgImage = renderer.cgImage {
+            return Image(uiImage: UIImage(cgImage: cgImage))
+        }
+        
+        // 萬一失敗的降級安全兜底（回傳空白圖片，避免 App 崩潰）
+        return Image(uiImage: UIImage())
+    }
    
     
 // MARK: - 卡片設計
@@ -237,124 +273,6 @@ struct eCardHomeView: View {
     // 3. 注入你的環境變數管理類別
     .environment(AppRouteManager())
 }
-
-
-
-
-
-// MARK: - 獨立抽離的 eCardVer1 結構
-struct eCardVer1: View {
-    // 透過 Binding 讓子元件與父層輸入框即時同步
-    @Binding var cardTitle: String
-    @Binding var cardBodyText: String
-    
-    // 字型與顏色直接帶入快照值
-    var selectedFont: CustomFontOption
-    var selectedTitleFont: CustomFontOption
-    var dominantColor: Color
-    
-    // 處理輸入框焦點
-    var isTitleFocused: FocusState<Bool>.Binding
-    var isBodyFocused: FocusState<Bool>.Binding
-    
-    var uiImage: UIImage?
-    
-    var body: some View {
-        VStack {
-            ZStack(alignment: .top) {
-                Image(uiImage: uiImage!)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 300, height: 300)
-                    .clipped()
-
-                // 顏色漸層遮罩
-                VStack (spacing: 0) {
-                    Color.clear.frame(width: 300, height: 150)
-
-                    ZStack(alignment: .bottom) {
-                        Rectangle()
-                            .fill(LinearGradient(
-                                gradient: Gradient(colors: [dominantColor.opacity(0), dominantColor.opacity(1)]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ))
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 150)
-                    }
-                }
-
-                // 文字
-                VStack(spacing: 0) {
-                    Color.clear.frame(width: 300, height: 270)
-                    ZStack(alignment: .top) {
-                        if cardTitle.isEmpty {
-                            Text("Enter your blessing\nmessage")
-                                .font(.custom("FlaemischeKanzleischrift", size: 38))
-                        }
-
-                        TextField("",
-                                  text: $cardTitle,
-                                  prompt: Text(""),
-                                  axis: .vertical
-                        )
-                        .font(selectedTitleFont.targetFont(28))
-                        .lineLimit(1...2)
-                        .focused(isTitleFocused)
-                    }
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.white)
-                    .padding(.horizontal)
-                    .padding(.bottom, 48)
-
-
-                    ZStack(alignment: .topLeading) {
-                        if cardBodyText.isEmpty {
-                            Text("Dear [Name]\n\nSay something...")
-                                .foregroundColor(.white.opacity(0.6))
-                                .padding()
-                        }
-
-                        TextField("",
-                                  text: $cardBodyText,
-                                  prompt: Text("")
-                            .foregroundColor(.white.opacity(0.8))
-                            .font(.system(size: 18, weight: .light)),
-                                  axis: .vertical
-                        )
-                        .font(selectedFont.targetFont(18))
-                        .foregroundColor(.white)
-                        .padding()
-                        .focused(isBodyFocused)
-                    }
-
-                }
-
-            }
-
-        }
-        .background(dominantColor)
-        .frame(width: 300)
-        .clipShape(RoundedRectangle(cornerRadius: 4))
-        .padding(.vertical)
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

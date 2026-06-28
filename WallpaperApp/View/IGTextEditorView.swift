@@ -172,59 +172,214 @@ struct WallpaperRenderCard: View {
     }
 }
 
+
+struct WallpaperRenderCard2: View {
+    @Binding var cardTitle: String
+    @Binding var cardBodyText: String
+    @FocusState private var isTitleFocused: Bool     // 標題專用
+    @FocusState private var isBodyFocused: Bool      // 內文專用
+    
+    @Binding var selectedFont: CustomFontOption
+    @Binding var selectedTitleFont: CustomFontOption
+   
+    
+    var body: some View {
+        ZStack {
+            Color.brown // 你的背景色
+            
+            VStack(spacing: 0) {
+                
+                ZStack(alignment: .top) {
+                    if cardTitle.isEmpty {
+                        Text("Enter your blessing\nmessage")
+                            .font(.custom("FlaemischeKanzleischrift", size: 38))
+                    }
+                    
+                    TextField("",
+                              text: $cardTitle,
+                              prompt: Text(""),
+                              axis: .vertical
+                    )
+                    .font(selectedTitleFont.targetFont(28))
+                    .lineLimit(1...2)
+                    .focused($isTitleFocused)
+                }
+                .multilineTextAlignment(.center)
+                .foregroundColor(.white)
+                .padding(.horizontal)
+                .padding(.bottom, 48)
+                
+                
+                ZStack(alignment: .topLeading) {
+                    if cardBodyText.isEmpty {
+                        Text("Dear [Name]\n\nSay something...")
+                            .foregroundColor(.white.opacity(0.6))
+                            .padding()
+                    }
+                    
+                    TextField("",
+                              text: $cardBodyText,
+                              prompt: Text("")
+                        .foregroundColor(.white.opacity(0.8))
+                        .font(.system(size: 18, weight: .light)),
+                              axis: .vertical
+                    )
+                    .font(selectedFont.targetFont(18))
+                    .foregroundColor(.white)
+                    .padding()
+                    .focused($isBodyFocused)
+                }
+                
+            }
+        }
+        .fontPickerToolbar(           // ← 自動判斷目前輸入哪一個
+            selectedFont: $selectedFont,
+            selectedTitleFont: $selectedTitleFont,
+            isTitleFocused: $isTitleFocused,
+            isBodyFocused: $isBodyFocused
+        )
+        .onTapGesture {
+            isTitleFocused = false
+            isBodyFocused = false
+        }
+        // 這裡給定明確的物理渲染尺寸（標準 iPhone 輸出解析度）
+        .frame(width: 300, height: 300)
+    }
+    
+//    // 新增：專門給 ImageRenderer 使用的初始化方法（避免 Binding 問題）
+//        init(cardTitle: String,
+//             cardBodyText: String,
+//             selectedFont: CustomFontOption,
+//             selectedTitleFont: CustomFontOption) {
+//            
+//            self._cardTitle = .constant(cardTitle)
+//            self._cardBodyText = .constant(cardBodyText)
+//            self._selectedFont = .constant(selectedFont)
+//            self._selectedTitleFont = .constant(selectedTitleFont)
+//        }
+}
+
+
 struct FontWallpaperShareView: View {
-    @State private var userText: String = "my test"
-    @State private var selectedFontName: String = "Big-Snow"
+//    @State private var userText: String = "請輸入"
+//    @State private var selectedFontName: String = "Big-Snow"
+    
+    
+    @State private var cardTitle: String = ""
+    @State private var cardBodyText: String = ""
+    
+    @State private var selectedFont: CustomFontOption = FontManager.shared.defaultFont
+    @State private var selectedTitleFont: CustomFontOption = FontManager.shared.defaultFont
     
     var body: some View {
         VStack(spacing: 20) {
             
             // 畫面上顯示給用戶看的即時編輯視圖（縮放比例顯示）
-            WallpaperRenderCard(text: userText, fontName: selectedFontName)
-                .aspectRatio(300/600, contentMode: .fit)
-                .frame(height: 400)
-                .cornerRadius(12)
+//            WallpaperRenderCard(text: userText, fontName: selectedFontName)
+//                .aspectRatio(300/300, contentMode: .fit)
+//                .frame(height: 400)
+//                .cornerRadius(12)
             
-            // 2. 有理有據的【純圖片】分享：直接把 Image 丟給 item
-            if let pureImage = renderCardToImage() {
-                ShareLink(
-                    item: pureImage,
-                    preview: SharePreview("自製桌布", image: pureImage)
-                ) {
-                    Label("一鍵分享圖片", systemImage: "square.and.arrow.up")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .clipShape(Capsule())
-                }
-            } else {
-                Text("圖片產生中...")
-                    .foregroundColor(.gray)
+            WallpaperRenderCard2(
+                cardTitle: $cardTitle,
+                cardBodyText: $cardBodyText,
+                selectedFont: $selectedFont,
+                selectedTitleFont: $selectedTitleFont
+            )
+            
+            
+            // 2. 一鍵分享按鈕：每次點擊分享選單彈出時，ShareLink 會動態觸發這個 Image
+            ShareLink(
+                item: renderCardToImage(),
+                preview: SharePreview("自製桌布", image: renderCardToImage())
+            ) {
+                Label("一鍵分享圖片", systemImage: "square.and.arrow.up")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.blue)
+                    .clipShape(Capsule())
             }
         }
         .padding()
     }
     
-    // 3. 核心變更：不建立實體檔案，直接在記憶體中回傳 Image 類型
-    @MainActor
-    private func renderCardToImage() -> Image? {
-        let cardToRender = WallpaperRenderCard(text: userText, fontName: selectedFontName)
-        let renderer = ImageRenderer(content: cardToRender)
-        
-        // 解析度設定
-        renderer.scale = 3.0
-        
-        // 先取得 CoreGraphics 圖片，再轉為系統支援點陣圖
-        guard let cgImage = renderer.cgImage else { return nil }
-        let uiImage = UIImage(cgImage: cgImage)
-        
-        // 關鍵：將 UIImage 轉換為 SwiftUI 專用的 Image 型別
-        return Image(uiImage: uiImage)
-    }
+    // 3. 核心修正方法：呼叫純靜態的 SnapshotCard，傳入純數值
+        @MainActor
+        private func renderCardToImage() -> Image {
+            // 改為調用純靜態、無互動元件的 Snapshot View
+            let cardToRender = WallpaperSnapshotCard(
+                cardTitle: cardTitle,
+                cardBodyText: cardBodyText,
+                selectedFont: selectedFont,
+                selectedTitleFont: selectedTitleFont
+            )
+            
+            let renderer = ImageRenderer(content: cardToRender)
+            
+            // 輸出解析度乘數：3.0 代表輸出實體像素 900x900，完美防禦視網膜螢幕鋸齒
+            renderer.scale = 3.0
+            
+            // 直接安全提取圖片
+            if let cgImage = renderer.cgImage {
+                return Image(uiImage: UIImage(cgImage: cgImage))
+            }
+            
+            // 萬一失敗的降級安全兜底（回傳空白圖片，避免 App 崩潰）
+            return Image(uiImage: UIImage())
+        }
 }
 
 
 #Preview {
     FontWallpaperShareView()
+}
+
+
+// 1. 專門給 ImageRenderer 離屏渲染用的【純靜態】檢視，徹底擺脫 TextField 與 Binding 限制
+struct WallpaperSnapshotCard: View {
+    let cardTitle: String
+    let cardBodyText: String
+    let selectedFont: CustomFontOption
+    let selectedTitleFont: CustomFontOption
+    
+    var body: some View {
+        ZStack {
+            Color.brown // 保持跟編輯畫面一模一樣的背景色
+            
+            VStack(spacing: 0) {
+                // 標題區
+                ZStack(alignment: .top) {
+                    if cardTitle.isEmpty {
+                        Text("Enter your blessing\nmessage")
+                            .font(.custom("FlaemischeKanzleischrift", size: 38))
+                    } else {
+                        Text(cardTitle)
+                            .font(selectedTitleFont.targetFont(28))
+                    }
+                }
+                .multilineTextAlignment(.center)
+                .foregroundColor(.white)
+                .padding(.horizontal)
+                .padding(.bottom, 48)
+                
+                // 內文區
+                ZStack(alignment: .topLeading) {
+                    if cardBodyText.isEmpty {
+                        Text("Dear [Name]\n\nSay something...")
+                            .foregroundColor(.white.opacity(0.6))
+                            .padding()
+                    } else {
+                        Text(cardBodyText)
+                            .font(selectedFont.targetFont(18))
+                            .foregroundColor(.white)
+                            .padding()
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading) // 模擬原有排版
+            }
+        }
+        // 這裡設定你期望輸出的物理圖片尺寸（例如：300x300，搭配 scale = 3.0 就會輸出 900x900 的高畫質圖）
+        .frame(width: 300, height: 300)
+    }
 }
