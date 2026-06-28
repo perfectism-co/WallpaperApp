@@ -17,6 +17,20 @@
 		9AA379092FEA372900FE6851 /* CustomTabViewD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379082FEA372900FE6851 /* CustomTabViewD.swift */; };
 		9AA3790B2FEA3B6700FE6851 /* CustomTabViewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3790A2FEA3B6000FE6851 /* CustomTabViewTest.swift */; };
 		9AA3790D2FEA577800FE6851 /* CustomTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3790C2FEA577100FE6851 /* CustomTabView.swift */; };
+		9AA379122FEB6DCE00FE6851 /* GlassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379112FEB6DCE00FE6851 /* GlassView.swift */; };
+		9AA379142FEB8A1B00FE6851 /* Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379132FEB8A1B00FE6851 /* Test.swift */; };
+		9AA379162FEB92AD00FE6851 /* test2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379152FEB92AD00FE6851 /* test2.swift */; };
+		9AA379182FEBDCCC00FE6851 /* getDominantColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379172FEBDCCC00FE6851 /* getDominantColor.swift */; };
+		9AA3791A2FEBFAA200FE6851 /* ColorThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379192FEBFAA200FE6851 /* ColorThemeManager.swift */; };
+		9AA3791C2FED273F00FE6851 /* IGTextEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3791B2FED273F00FE6851 /* IGTextEditorView.swift */; };
+		9AA379212FED297F00FE6851 /* ChenYuluoyan-2.0-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9AA3791E2FED297F00FE6851 /* ChenYuluoyan-2.0-Thin.ttf */; };
+		9AA379262FED29F300FE6851 /* FlaemischeKanzleischrift.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9AA379242FED29F300FE6851 /* FlaemischeKanzleischrift.ttf */; };
+		9AA379272FED29F300FE6851 /* StarPandaKidsBeta2.1.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9AA379252FED29F300FE6851 /* StarPandaKidsBeta2.1.otf */; };
+		9AA379292FED2A2D00FE6851 /* Big-Snow.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9AA379282FED2A2D00FE6851 /* Big-Snow.ttf */; };
+		9AA3792C2FED5B4F00FE6851 /* FontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3792B2FED5B4C00FE6851 /* FontManager.swift */; };
+		9AA3792E2FED5C6800FE6851 /* FontPickerToolbarModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA3792D2FED5C6600FE6851 /* FontPickerToolbarModifier.swift */; };
+		9AA379322FED5CD100FE6851 /* FontPickerToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379312FED5CCE00FE6851 /* FontPickerToolbar.swift */; };
+		9AA379362FEF995800FE6851 /* Untitled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379352FEF995600FE6851 /* Untitled.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +45,21 @@
 		9AA379082FEA372900FE6851 /* CustomTabViewD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabViewD.swift; sourceTree = "<group>"; };
 		9AA3790A2FEA3B6000FE6851 /* CustomTabViewTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabViewTest.swift; sourceTree = "<group>"; };
 		9AA3790C2FEA577100FE6851 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
+		9AA379112FEB6DCE00FE6851 /* GlassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassView.swift; sourceTree = "<group>"; };
+		9AA379132FEB8A1B00FE6851 /* Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Test.swift; sourceTree = "<group>"; };
+		9AA379152FEB92AD00FE6851 /* test2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test2.swift; sourceTree = "<group>"; };
+		9AA379172FEBDCCC00FE6851 /* getDominantColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = getDominantColor.swift; sourceTree = "<group>"; };
+		9AA379192FEBFAA200FE6851 /* ColorThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorThemeManager.swift; sourceTree = "<group>"; };
+		9AA3791B2FED273F00FE6851 /* IGTextEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IGTextEditorView.swift; sourceTree = "<group>"; };
+		9AA3791E2FED297F00FE6851 /* ChenYuluoyan-2.0-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ChenYuluoyan-2.0-Thin.ttf"; sourceTree = "<group>"; };
+		9AA379242FED29F300FE6851 /* FlaemischeKanzleischrift.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FlaemischeKanzleischrift.ttf; sourceTree = "<group>"; };
+		9AA379252FED29F300FE6851 /* StarPandaKidsBeta2.1.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = StarPandaKidsBeta2.1.otf; sourceTree = "<group>"; };
+		9AA379282FED2A2D00FE6851 /* Big-Snow.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Big-Snow.ttf"; sourceTree = "<group>"; };
+		9AA3792A2FED2C1100FE6851 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		9AA3792B2FED5B4C00FE6851 /* FontManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontManager.swift; sourceTree = "<group>"; };
+		9AA3792D2FED5C6600FE6851 /* FontPickerToolbarModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontPickerToolbarModifier.swift; sourceTree = "<group>"; };
+		9AA379312FED5CCE00FE6851 /* FontPickerToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontPickerToolbar.swift; sourceTree = "<group>"; };
+		9AA379352FEF995600FE6851 /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +92,8 @@
 		9A5B10132FE6D263008449A0 /* WallpaperApp */ = {
 			isa = PBXGroup;
 			children = (
+				9AA3792A2FED2C1100FE6851 /* Info.plist */,
+				9AA3791D2FED293900FE6851 /* Fonts */,
 				9A5B10192FE6D865008449A0 /* ViewModel */,
 				9A5B101C2FE7B5D4008449A0 /* View */,
 				9A5B10102FE6D263008449A0 /* Assets.xcassets */,
@@ -74,7 +105,11 @@
 		9A5B10192FE6D865008449A0 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				9AA3792D2FED5C6600FE6851 /* FontPickerToolbarModifier.swift */,
+				9AA3792B2FED5B4C00FE6851 /* FontManager.swift */,
 				9A5B10172FE6D833008449A0 /* AppRouteManager.swift */,
+				9AA379172FEBDCCC00FE6851 /* getDominantColor.swift */,
+				9AA379192FEBFAA200FE6851 /* ColorThemeManager.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -82,10 +117,14 @@
 		9A5B101C2FE7B5D4008449A0 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				9AA379352FEF995600FE6851 /* Untitled.swift */,
 				9AA379102FEB649B00FE6851 /* Compoments */,
 				9AA379002FE7DE6900FE6851 /* WallpapersView.swift */,
 				9AA379022FE9204100FE6851 /* AdvertisementView.swift */,
 				9AA379042FE975F500FE6851 /* eCardHomeView.swift */,
+				9AA379132FEB8A1B00FE6851 /* Test.swift */,
+				9AA379152FEB92AD00FE6851 /* test2.swift */,
+				9AA3791B2FED273F00FE6851 /* IGTextEditorView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -93,12 +132,25 @@
 		9AA379102FEB649B00FE6851 /* Compoments */ = {
 			isa = PBXGroup;
 			children = (
+				9AA379312FED5CCE00FE6851 /* FontPickerToolbar.swift */,
 				9AA3790C2FEA577100FE6851 /* CustomTabView.swift */,
 				9AA3790A2FEA3B6000FE6851 /* CustomTabViewTest.swift */,
 				9AA379082FEA372900FE6851 /* CustomTabViewD.swift */,
 				9AA379062FE98E7800FE6851 /* ButtonTest.swift */,
+				9AA379112FEB6DCE00FE6851 /* GlassView.swift */,
 			);
 			path = Compoments;
+			sourceTree = "<group>";
+		};
+		9AA3791D2FED293900FE6851 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				9AA379242FED29F300FE6851 /* FlaemischeKanzleischrift.ttf */,
+				9AA379282FED2A2D00FE6851 /* Big-Snow.ttf */,
+				9AA3791E2FED297F00FE6851 /* ChenYuluoyan-2.0-Thin.ttf */,
+				9AA379252FED29F300FE6851 /* StarPandaKidsBeta2.1.otf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,6 +214,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AA379292FED2A2D00FE6851 /* Big-Snow.ttf in Resources */,
+				9AA379212FED297F00FE6851 /* ChenYuluoyan-2.0-Thin.ttf in Resources */,
+				9AA379262FED29F300FE6851 /* FlaemischeKanzleischrift.ttf in Resources */,
+				9AA379272FED29F300FE6851 /* StarPandaKidsBeta2.1.otf in Resources */,
 				9A5B10142FE6D263008449A0 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -176,12 +232,22 @@
 				9AA379032FE9204100FE6851 /* AdvertisementView.swift in Sources */,
 				9AA379072FE98E7800FE6851 /* ButtonTest.swift in Sources */,
 				9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */,
+				9AA3792E2FED5C6800FE6851 /* FontPickerToolbarModifier.swift in Sources */,
+				9AA379182FEBDCCC00FE6851 /* getDominantColor.swift in Sources */,
 				9AA3790D2FEA577800FE6851 /* CustomTabView.swift in Sources */,
+				9AA3791A2FEBFAA200FE6851 /* ColorThemeManager.swift in Sources */,
+				9AA379362FEF995800FE6851 /* Untitled.swift in Sources */,
+				9AA379162FEB92AD00FE6851 /* test2.swift in Sources */,
 				9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */,
+				9AA379142FEB8A1B00FE6851 /* Test.swift in Sources */,
+				9AA379322FED5CD100FE6851 /* FontPickerToolbar.swift in Sources */,
 				9AA379052FE975F500FE6851 /* eCardHomeView.swift in Sources */,
 				9AA3790B2FEA3B6700FE6851 /* CustomTabViewTest.swift in Sources */,
+				9AA379122FEB6DCE00FE6851 /* GlassView.swift in Sources */,
 				9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */,
 				9AA379092FEA372900FE6851 /* CustomTabViewD.swift in Sources */,
+				9AA3792C2FED5B4F00FE6851 /* FontManager.swift in Sources */,
+				9AA3791C2FED273F00FE6851 /* IGTextEditorView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,6 +385,7 @@
 				DEVELOPMENT_TEAM = 8T3GT5DSQR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WallpaperApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -351,6 +418,7 @@
 				DEVELOPMENT_TEAM = 8T3GT5DSQR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WallpaperApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

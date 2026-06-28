@@ -109,8 +109,6 @@ struct MainAppLayoutView: View {
             // ─── 分頁一：桌布首頁 ───
             NavigationStack(path: $homePath) {
                 WallpapersView() // 裡面就是你寫的上層標籤與雙排網格
-                    .navigationTitle("Wallpapers")
-                    .navigationBarTitleDisplayMode(.inline)
                     .navigationDestination(for: HomeRoute.self) { route in
                         switch route {
                         case .wallpaperDetail(let id):

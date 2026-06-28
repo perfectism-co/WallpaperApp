@@ -68,12 +68,14 @@ struct WallpaperGridView: View {
     
     var body: some View {
         ZStack{
-            Image("myImageName")
-                .resizable()           // 1. 允許圖片改變大小
-                .scaledToFill()        // 2. 保持長寬比並填滿空間
-                .frame(maxWidth: .infinity, maxHeight: .infinity) // 3. 設定目標區域大小
-                .clipped()             // 4. 裁切超出框架的部分
-                .ignoresSafeArea(.container, edges: .all)
+            Color.clear // 1. 產生一個透明底板，它會精準貼齊當前的可用螢幕範圍
+                .overlay(
+                    Image("myImageName")
+                        .resizable()
+                        .scaledToFill() // 圖片在 overlay 裡面無論怎麼放大...
+                )
+                .clipped() // 2. 強制將疊在上面的圖片，裁切成跟 Color.clear 完全一樣大
+                .ignoresSafeArea(.container, edges: .all) // 3. 讓整個組合體延伸到瀏海和底部邊緣
             VStack{
                 Rectangle()
                     .fill(
@@ -109,6 +111,8 @@ struct WallpaperGridView: View {
 //                    alignment: .center
 //                )
         }
+        .navigationTitle("Wallpapers")
+        .navigationBarTitleDisplayMode(.inline)
         
 //        ScrollView(showsIndicators: false) {
 //            LazyVGrid(columns: columns, spacing: 10) {
@@ -165,9 +169,7 @@ struct WallpaperGridView: View {
 #Preview {
     // 預覽時必須包裹在 NavigationStack 中，才能正確模擬導航欄穿透效果
     NavigationStack {
-        WallpapersView()
-            .navigationTitle("Wallpapers")
-            .navigationBarTitleDisplayMode(.inline)
+        WallpapersView()            
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .wallpaperDetail(let id):
