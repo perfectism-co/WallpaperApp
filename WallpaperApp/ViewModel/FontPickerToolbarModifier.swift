@@ -5,13 +5,16 @@
 
 import SwiftUI
 
+
 struct FontPickerToolbarModifier: ViewModifier {
     @Binding var selectedFont: CustomFontOption
     @Binding var selectedTitleFont: CustomFontOption
-    var isTitleFocused: FocusState<Bool>.Binding
-    var isBodyFocused: FocusState<Bool>.Binding   // 新增 body 的 focus
+    @Binding var selectedTapeColor: TapeColorOption
+    @Binding var selectedCard: CardType
     
-    let fontOptions: [CustomFontOption]
+    var isTitleFocused: FocusState<Bool>.Binding
+    var isBodyFocused: FocusState<Bool>.Binding
+    
     
     func body(content: Content) -> some View {
         content
@@ -20,7 +23,8 @@ struct FontPickerToolbarModifier: ViewModifier {
                     FontPickerToolbar(
                         selectedFont: $selectedFont,
                         selectedTitleFont: $selectedTitleFont,
-                        fontOptions: fontOptions, isTitleFocused: isTitleFocused.wrappedValue
+                        selectedTapeColor: $selectedTapeColor, selectedCard: $selectedCard,
+                        isTitleFocused: isTitleFocused.wrappedValue
                     )
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -33,20 +37,19 @@ extension View {
     func fontPickerToolbar(
         selectedFont: Binding<CustomFontOption>,
         selectedTitleFont: Binding<CustomFontOption>,
+        selectedTapeColor: Binding<TapeColorOption>,
+        selectedCard: Binding<CardType>,
         isTitleFocused: FocusState<Bool>.Binding,
-        isBodyFocused: FocusState<Bool>.Binding,
-        fontOptions: [CustomFontOption] = FontManager.shared.fontOptions
+        isBodyFocused: FocusState<Bool>.Binding
     ) -> some View {
         self.modifier(
             FontPickerToolbarModifier(
                 selectedFont: selectedFont,
                 selectedTitleFont: selectedTitleFont,
+                selectedTapeColor: selectedTapeColor, selectedCard: selectedCard,
                 isTitleFocused: isTitleFocused,
-                isBodyFocused: isBodyFocused,
-                fontOptions: fontOptions
+                isBodyFocused: isBodyFocused
             )
         )
     }
 }
-
-

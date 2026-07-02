@@ -335,7 +335,10 @@ struct DemoView: View {
 struct ExploreView: View {
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 2) {
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 20), // 設定第一個與第二個之間的水平間距
+                GridItem(.flexible(), spacing: 20)  // 左右間距會由這裡的 spacing 決定
+            ], spacing: 10) {
                 ForEach(0..<20, id: \.self) { _ in
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
