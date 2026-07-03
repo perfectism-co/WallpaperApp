@@ -95,8 +95,7 @@ struct SnapshotCard2: View {
     let selectedFont: CustomFontOption
     var selectedTitleFont: CustomFontOption
     let uiImage: UIImage?
-   
-    let dominantColor: Color
+    let imageHeight: CGFloat
     let selectedTapeColor: TapeColorOption
     let textHeight: CGFloat
     
@@ -106,11 +105,6 @@ struct SnapshotCard2: View {
         ZStack(alignment: .bottomTrailing) {
             ZStack(alignment: .top) {
                 Image(uiImage: uiImage!)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 300, height: 300)
-                    .clipped()
-                
                 
                 VStack(spacing: 35) {
                     // 膠帶與標題
@@ -138,7 +132,7 @@ struct SnapshotCard2: View {
                             .padding(.horizontal, 26)
                     }
                 }
-                .alignmentGuide(.top) { d in d[.top] - 294 }
+                .alignmentGuide(.top) { d in (d[.top] - max(0, imageHeight - 6))}
                 .padding(.bottom, 50)
             }
             
@@ -163,5 +157,5 @@ struct SnapshotCard2: View {
 
 
 #Preview {
-    SnapshotCard2( cardTitle: "生日快樂Happy", cardBodyText: "1456", selectedFont: FontManager.shared.defaultBodyFont, selectedTitleFont: FontManager.shared.titleFontOptions[1], uiImage: UIImage(named: "myImageName"), dominantColor: Color.brown, selectedTapeColor: TapeColorOption(name: "deep-yellow-tape", hex: "#FFCC00"), textHeight: 50) // 傳入預覽高度[cite: 6]
+    SnapshotCard2( cardTitle: "生日快樂Happy", cardBodyText: "1456", selectedFont: FontManager.shared.defaultBodyFont, selectedTitleFont: FontManager.shared.titleFontOptions[1], uiImage: UIImage(named: "myImageName"), imageHeight: 300, selectedTapeColor: TapeColorOption(name: "deep-yellow-tape", hex: "#FFCC00"), textHeight: 50) // 傳入預覽高度[cite: 6]
 }

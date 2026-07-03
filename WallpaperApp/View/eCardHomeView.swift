@@ -18,6 +18,9 @@ enum CardType: String, CaseIterable, Identifiable {
 }
 
 struct eCardHomeView: View {
+    // 💡 1. 透過環境變數取得「當前視窗」的正確縮放比例
+    @Environment(\.displayScale) var displayScale
+    
     @State private var isBarHidden = false
 
     @State private var cardTitle: String = ""
@@ -28,20 +31,68 @@ struct eCardHomeView: View {
     
     @State private var selectedFont: CustomFontOption = FontManager.shared.defaultBodyFont
     @State private var selectedTitleFont: CustomFontOption = FontManager.shared.defaultTitleFont
+    // 選擇照片或使用當前桌布
     let uiImage = UIImage(named: "myImageName")
+    @State private var selectedItem: PhotosPickerItem?
+    @State private var selectedImage: UIImage?
+    @State private var showDialog = false
+    @State private var showPicker = false // 新增一個狀態來控制 Picker
+    // 🎯 1. 將複雜的佈局邏輯抽離成「計算型屬性」，讓 View 保持乾淨
+    private var contentMode: ContentMode {
+        selectedImage != nil ? .fit : .fill
+    }
+
+    private var imageHeightValue: CGFloat? {
+        selectedImage != nil ? nil : 300
+    }
+    
+   
+    private var sourceImageData: UIImage? {
+        // 💡 優先使用 selectedImage，沒有就降級用 uiImage
+        selectedImage ?? uiImage
+    }
+    private var styledImageView: some View {
+        Group {
+            if let imageToRender = sourceImageData {
+                Image(uiImage: imageToRender)
+                    .resizable()
+                    .aspectRatio(contentMode: contentMode)
+                    // 💡 確保傳入已經計算好的確定數值，避免編譯器超時假警報
+                    .frame(width: 300, height: imageHeightValue)
+                    .clipped()
+                    .contentShape(.rect) // iOS 26+ 推薦的小寫語法
+            } else {
+                // 防禦性 Fallback：完全沒圖時的佔位
+                Rectangle()
+                    .fill(Color.gray)
+                    .frame(width: 300, height: imageHeightValue)
+            }
+        }
+    }
+    
+    @MainActor // 💡 UI 渲染必須在主執行緒進行
+    func exportModifiedImage() -> UIImage? {
+        // 1. 將剛剛設計好的 SwiftUI View 放進渲染器
+        let renderer = ImageRenderer(content: styledImageView)
+        
+        // 2. (重要) 確保輸出圖片的解析度與目前設備螢幕比例一致，才不會模糊
+        // 💡 2. 替換為環境變數，完美適配多螢幕與高解析度設備
+        renderer.scale = displayScale
+        
+        // 3. 輸出並傳出最終的 UIImage
+        return renderer.uiImage
+    }
+   
     @State private var dominantColor: Color = .clear
     
 
     @State private var selectedCard: CardType = .eCardVer2
     @State private var showCardStyleSettings: Bool = false
     
-    // 選擇照片或使用當前桌布
-    @State private var selectedItem: PhotosPickerItem?
-    @State private var selectedImage: UIImage?
-    @State private var showDialog = false
-    @State private var showPicker = false // 新增一個狀態來控制 Picker
+   
     
     @State private var textHeight: CGFloat = 0 // 儲存文字框高度
+    @State private var imageHeight: CGFloat = 0 // eCardVer2 自訂照片
     
     
     @State private var selectedTapeColor = TapeColorOption(name: "deep-yellow-tape", hex: "#FFCC00")
@@ -207,8 +258,8 @@ struct eCardHomeView: View {
                 cardBodyText: cardBodyText,
                 selectedFont: selectedFont,
                 selectedTitleFont: selectedTitleFont,
-                uiImage: uiImage,
-                dominantColor: dominantColor,
+                uiImage: exportModifiedImage(),
+                imageHeight: imageHeight,
                 selectedTapeColor: selectedTapeColor,
                 textHeight: textHeight
             )
@@ -387,23 +438,13 @@ struct eCardHomeView: View {
            
             ZStack(alignment: .top) {
                 // Photo
-                Group{
-                    if let selectedImage {
-                        Image(uiImage: selectedImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 300)
-                            .clipped()
-                            .contentShape(Rectangle())
-                    } else {
-                        Image(uiImage: uiImage!)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 300, height: 300)
-                            .clipped()
-                            .contentShape(Rectangle())
-                    }
-                    
+                styledImageView
+                // 🎯 iOS 26+ 最新核心語法：監聽最外層容器的視覺高度，安全且完全不卡頓
+                .onGeometryChange(for: CGFloat.self) { proxy in
+                    proxy.size.height
+                } action: { newValue in
+                    // 💡 現代安全防禦性寫法：阻擋載入瞬間的異常負數或0，確保排版引擎不回報錯誤
+                    self.imageHeight = max(0, newValue)
                 }
                 .onTapGesture {
                     showDialog = true
@@ -411,6 +452,7 @@ struct eCardHomeView: View {
                 .confirmationDialog("Choose Photo Type", isPresented: $showDialog, titleVisibility: .visible) {
                     Button("當前手機桌布") {
                         selectedImage = nil
+                        selectedItem = nil
                     }
                         
                     // 這裡改成普通按鈕，點擊後觸發 showPicker
@@ -423,10 +465,20 @@ struct eCardHomeView: View {
                 }
                 // 將 PhotosPicker 移出對話框，設為隱藏或透過觸發條件顯示
                 .photosPicker(isPresented: $showPicker, selection: $selectedItem, matching: .images)
-                .onChange(of: selectedItem) { _, newItem in
+                .onChange(of: selectedItem) { oldValue, newItem in
+                    // 🎯 核心修正 2：防禦性解包與取消狀態攔截
+                    guard let newItem else {
+                        // 如果使用者在相簿裡手動「取消勾選」了所有照片
+                        // 我們也應該同步把畫面上的圖片清空，避免狀態殘留
+                        selectedImage = nil
+                        return
+                    }
+                    
                     Task {
-                        if let data = try? await newItem?.loadTransferable(type: Data.self),
+                        // 載入新照片的資料
+                        if let data = try? await newItem.loadTransferable(type: Data.self),
                            let image = UIImage(data: data) {
+                            // 在現代 Swift 嚴格併發檢查下，確保 UI 更新都在這裡安全完成
                             selectedImage = image
                         }
                     }
@@ -522,7 +574,7 @@ struct eCardHomeView: View {
                     .padding(.horizontal, 26)
                     
                 }
-                .alignmentGuide(.top) { d in d[.top] - 294 }
+                .alignmentGuide(.top) { d in (d[.top] - max(0, imageHeight - 6))}
                 .padding(.bottom, 50)
                 
             }
