@@ -103,6 +103,6 @@ class FontManager {
     }
     
     var defaultTitleFont: CustomFontOption {
-        titleFontOptions[1]
+        titleFontOptions[0]
     }
 }

@@ -38,28 +38,29 @@ struct SnapshotCard1: View {
                 }
                 
                 // 文字
-                VStack(spacing: 0) {
+                VStack(spacing: 48) {
                     Color.clear.frame(width: 300, height: 250)
                     
                     Text(cardTitle)
                         .font(selectedTitleFont.targetFont(48))
                         .lineLimit(1...3)
                         .padding()
-                        .padding(.bottom, 48)
                         .multilineTextAlignment(.center)
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.white.opacity(0.7))
+                        .blendMode(.plusLighter)
                 
                     if !cardBodyText.isEmpty {
                         Text(cardBodyText)
                             .font(selectedFont.targetFont(18))
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.white.opacity(0.7))
+                            .blendMode(.plusLighter)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 26)
                             .padding(.vertical)
-                            
+                            .padding(.bottom, 50)
                     }
                 }
-                .padding(.bottom, 50)
+                
             }
             
             
@@ -70,7 +71,8 @@ struct SnapshotCard1: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 15)
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(Color.white.opacity(0.7))
+                    .blendMode(.plusLighter)
             }
             .padding(4)
         }
@@ -82,7 +84,7 @@ struct SnapshotCard1: View {
 
 
 #Preview {
-    SnapshotCard1( cardTitle: "Happy Birthday", cardBodyText: "123", selectedFont: FontManager.shared.defaultBodyFont, selectedTitleFont: FontManager.shared.defaultTitleFont, uiImage: UIImage(named: "myImageName"), dominantColor: Color.blue)
+    SnapshotCard1( cardTitle: "Happy Birthday", cardBodyText: "", selectedFont: FontManager.shared.defaultBodyFont, selectedTitleFont: FontManager.shared.titleFontOptions[1], uiImage: UIImage(named: "myImageName"), dominantColor: Color.blue)
 }
 
 
@@ -120,6 +122,7 @@ struct SnapshotCard2: View {
                             .foregroundStyle(Color.black.opacity(0.7))
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal)
+                            .padding(.bottom)
                     }
                     .padding(.horizontal)
                     
@@ -127,13 +130,14 @@ struct SnapshotCard2: View {
                     if !cardBodyText.isEmpty {
                         Text(cardBodyText)
                             .font(selectedFont.targetFont(18))
-                            .foregroundStyle(Color.black.opacity(0.85))
+                            .foregroundStyle(Color.black.opacity(0.9))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 26)
+                            .padding(.bottom, 50)
                     }
                 }
                 .alignmentGuide(.top) { d in (d[.top] - max(0, imageHeight - 6))}
-                .padding(.bottom, 50)
+                
             }
             
             // Watermark
@@ -143,7 +147,7 @@ struct SnapshotCard2: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 15)
-                    .foregroundStyle(Color.black.opacity(0.85))
+                    .foregroundStyle(Color.black)
             }
             .padding(4)
             
@@ -157,5 +161,5 @@ struct SnapshotCard2: View {
 
 
 #Preview {
-    SnapshotCard2( cardTitle: "生日快樂Happy", cardBodyText: "1456", selectedFont: FontManager.shared.defaultBodyFont, selectedTitleFont: FontManager.shared.titleFontOptions[1], uiImage: UIImage(named: "myImageName"), imageHeight: 300, selectedTapeColor: TapeColorOption(name: "deep-yellow-tape", hex: "#FFCC00"), textHeight: 50) // 傳入預覽高度[cite: 6]
+    SnapshotCard2( cardTitle: "Happy Birt", cardBodyText: "12346435233214", selectedFont: FontManager.shared.defaultBodyFont, selectedTitleFont: FontManager.shared.titleFontOptions[1], uiImage: UIImage(named: "testImage") ,imageHeight: 300, selectedTapeColor: TapeColorOption(name: "deep-yellow-tape", hex: "#FFCC00"), textHeight: 50) // 傳入預覽高度[cite: 6]
 }

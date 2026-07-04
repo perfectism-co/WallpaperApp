@@ -35,6 +35,7 @@
 		9AB732232FF41723001BD827 /* PhotoUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB732222FF41723001BD827 /* PhotoUploadView.swift */; };
 		9AB732252FF41C26001BD827 /* CardPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB732242FF41C26001BD827 /* CardPhoto.swift */; };
 		9AB732282FF668EA001BD827 /* TapeColorOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB732272FF668DF001BD827 /* TapeColorOption.swift */; };
+		9AB7322A2FF8110F001BD827 /* Untitled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB732292FF8110D001BD827 /* Untitled.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +69,7 @@
 		9AB732222FF41723001BD827 /* PhotoUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoUploadView.swift; sourceTree = "<group>"; };
 		9AB732242FF41C26001BD827 /* CardPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardPhoto.swift; sourceTree = "<group>"; };
 		9AB732272FF668DF001BD827 /* TapeColorOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapeColorOption.swift; sourceTree = "<group>"; };
+		9AB732292FF8110D001BD827 /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +129,7 @@
 		9A5B101C2FE7B5D4008449A0 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				9AB732292FF8110D001BD827 /* Untitled.swift */,
 				9AA379102FEB649B00FE6851 /* Compoments */,
 				9AA379002FE7DE6900FE6851 /* WallpapersView.swift */,
 				9AA379022FE9204100FE6851 /* AdvertisementView.swift */,
@@ -267,6 +270,7 @@
 				9AA3790B2FEA3B6700FE6851 /* CustomTabViewTest.swift in Sources */,
 				9AA379122FEB6DCE00FE6851 /* GlassView.swift in Sources */,
 				9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */,
+				9AB7322A2FF8110F001BD827 /* Untitled.swift in Sources */,
 				9AA379092FEA372900FE6851 /* CustomTabViewD.swift in Sources */,
 				9AB732212FF41336001BD827 /* PhotoUploadViewController.swift in Sources */,
 				9AA3792C2FED5B4F00FE6851 /* FontManager.swift in Sources */,

@@ -6,20 +6,24 @@
 import SwiftUI
 
 struct FontPickerToolbar: View {
+
+    
     @Binding var selectedFont: CustomFontOption        // 內文
     @Binding var selectedTitleFont: CustomFontOption   // 標題
     @Binding var selectedTapeColor: TapeColorOption
     @Binding var selectedCard: CardType
     @State private var isFold: Bool = true
     
+    
     var isTitleFocused: Bool
     
     let tapeColors: [TapeColorOption] = [
         TapeColorOption(name: "deep-red-tape", hex: "#7d1a1a"),
-        TapeColorOption(name: "deep-orange-tape", hex: "#f69240"),
-        TapeColorOption(name: "deep-yellow-tape", hex: "#ffbb00"),
         TapeColorOption(name: "deep-green-tape", hex: "#284823"),
+        TapeColorOption(name: "deep-yellow-tape", hex: "#ffbb00"),
+        TapeColorOption(name: "deep-blue-tape", hex: "#214fc8"),
         TapeColorOption(name: "deep-pink-tape", hex: "#e6589b"),
+        TapeColorOption(name: "deep-purple-tape", hex: "#7d51a0"),
         TapeColorOption(name: "morandi-skin-tape", hex: "#f6e4bf"),
         TapeColorOption(name: "morandi-pink-tape", hex: "#eac4d2"),
         TapeColorOption(name: "morandi-purple-tape", hex: "#d5cbec"),
@@ -30,6 +34,7 @@ struct FontPickerToolbar: View {
     var body: some View {
         VStack(spacing: 0) {
             if selectedCard == CardType.eCardVer2 && isTitleFocused {
+                
                 if isFold {
                     HStack {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -156,5 +161,7 @@ struct FontPickerToolbar: View {
     private var currentOptions: [CustomFontOption] {
         isTitleFocused ? FontManager.shared.titleFontOptions : FontManager.shared.bodyFontOptions
     }
+    
+  
 }
 

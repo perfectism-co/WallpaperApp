@@ -27,7 +27,7 @@ struct eCardHomeView: View {
     @State private var cardBodyText: String = ""
     @FocusState private var isTitleFocused: Bool     // 標題專用
     @FocusState private var isBodyFocused: Bool      // 內文專用
-    @State private var isShowTextField: Bool = false
+   
     
     @State private var selectedFont: CustomFontOption = FontManager.shared.defaultBodyFont
     @State private var selectedTitleFont: CustomFontOption = FontManager.shared.defaultTitleFont
@@ -91,11 +91,11 @@ struct eCardHomeView: View {
     
    
     
-    @State private var textHeight: CGFloat = 0 // 儲存文字框高度
-    @State private var imageHeight: CGFloat = 0 // eCardVer2 自訂照片
+    @State private var textHeight: CGFloat = 80 // 儲存文字框高度
+    @State private var imageHeight: CGFloat = 300 // eCardVer2 自訂照片
     
     
-    @State private var selectedTapeColor = TapeColorOption(name: "deep-yellow-tape", hex: "#FFCC00")
+    @State private var selectedTapeColor = TapeColorOption(name: "morandi-skin-tape", hex: "#f6e4bf")
     
     var body: some View {
         ZStack {
@@ -134,7 +134,10 @@ struct eCardHomeView: View {
                 // 加上一點流暢的切換動畫
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedCard)
                 
-                // 4. 純按鈕切換邏輯
+                // 操作鍵
+                VStack{
+                    
+                }
                 Button(action: {
                     showCardStyleSettings = true
                     // 點擊時，在兩種狀態之間切換
@@ -146,7 +149,19 @@ struct eCardHomeView: View {
                 }
                 .frame(width: 300)
                 .glassEffect()
-            
+                
+                
+                Button{
+                    
+                }label: {
+                    Text("Without Body")
+                        .foregroundStyle(Color.init(uiColor: .label))
+                        .padding()
+                }
+                .frame(width: 300)
+                .glassEffect()
+                
+                
                 // 一鍵分享按鈕：每次點擊分享選單彈出時，ShareLink 會動態觸發這個 Image
                 ShareLink(
                     item: renderCardToImage(), // 這裡已經是非 Optional 的 Image 了
@@ -197,6 +212,17 @@ struct eCardHomeView: View {
             // 動態切換隱藏或顯示
             .toolbar(isBarHidden ? .hidden : .visible, for: .navigationBar)
         }
+//        .toolbar {
+//            ToolbarItem(placement: .keyboard) {
+//                FontPickerToolbar(           // ← 自動判斷目前輸入哪一個
+//                    titleTextOnPage: $cardTitle, selectedFont: $selectedFont,
+//                    selectedTitleFont: $selectedTitleFont,
+//                    selectedTapeColor: $selectedTapeColor,
+//                    selectedCard: $selectedCard,
+//                    isTitleFocused: isTitleFocused
+//                )
+//            }
+//        }
         .fontPickerToolbar(           // ← 自動判斷目前輸入哪一個
             selectedFont: $selectedFont,
             selectedTitleFont: $selectedTitleFont,
@@ -366,7 +392,8 @@ struct eCardHomeView: View {
                         
                         TextField("", text: $cardTitle, axis: .vertical)
                         .font(selectedTitleFont.targetFont(48))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.white.opacity(0.7))
+                        .blendMode(.plusLighter)
                         .lineLimit(1...3)
                         .padding()
                         .focused($isTitleFocused)
@@ -395,14 +422,15 @@ struct eCardHomeView: View {
                                   axis: .vertical
                         )
                         .font(selectedFont.targetFont(18))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.white.opacity(0.7))
+                        .blendMode(.plusLighter)
                         .padding(.horizontal, 26)
                         .padding(.vertical)
                         .focused($isBodyFocused)
                     }
-                    
+                    .padding(.bottom, 50)
                 }
-                .padding(.bottom, 50)
+                
             }
             
         }
@@ -488,16 +516,22 @@ struct eCardHomeView: View {
                     ZStack {
                         
                         // 色彩膠帶
-                        Image(selectedTapeColor.name)
-                            .resizable()
-                            //.foregroundStyle(selectedTapeColor.color) // 使用 .color 屬性取得 Color 物件
-                            .frame(maxWidth: .infinity)
-                            .frame(height: textHeight)
+//                        Image(selectedTapeColor.name)
+//                            .resizable()
+//                            //.foregroundStyle(selectedTapeColor.color) // 使用 .color 屬性取得 Color 物件
+//                            .frame(maxWidth: .infinity)
+//                            .frame(height: cardTitle.isEmpty ? 80 : textHeight)
                         
                         // 標題
-                        if selectedTitleFont == FontManager.shared.titleFontOptions[0] {
-                            if cardTitle.isEmpty {
-                                Text("Enter your blessing message")
+//                       
+                        if cardTitle.isEmpty {
+                            ZStack {
+                                Image(selectedTapeColor.name)
+                                    .resizable()
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 80)
+                                
+                                Text("Blessing message...")
                                     .font(.system(size: 30, weight: .black, design: .default))
                                     .foregroundStyle(Color.black.opacity(0.3))
                                     .frame(maxWidth: .infinity)
@@ -507,52 +541,76 @@ struct eCardHomeView: View {
                                         isTitleFocused = true
                                     }
                             }
-                            
-                            TextField("", text: $cardTitle, axis: .vertical)
-                                .font(selectedTitleFont.targetFont(48))
-                                .lineLimit(1...3)
-                                .focused($isTitleFocused)
-                                .foregroundStyle(Color.black.opacity(0.65))
-                                .frame(maxWidth: .infinity)
-                                .padding(.horizontal)
-                            // [cite: 35] 關鍵語法：監聽邊界尺寸變化，一旦變動就更新變數
-                                .onGeometryChange(for: CGFloat.self, of: { proxy in
-                                    proxy.size.height // 鎖定偵測高度
-                                }, action: { newValue in
-                                    textHeight = newValue + 16 // 同步到狀態變數
-                                })
-                        }else {
-                            // 標題
-                            if cardTitle.isEmpty {
-                                Text("Enter your blessing\nmessage")
-                                    .font(.system(size: 30, weight: .black, design: .default))
-                                    .foregroundStyle(Color.black.opacity(0.3))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.horizontal)
-                                    .background(Color.clear)
-                                    .onTapGesture {
-                                        isTitleFocused = true
-                                    }
-                            }
-                            
-                            TextField("",text: $cardTitle, axis: .vertical)
-                                .font(selectedTitleFont.targetFont(48))
-                                .lineLimit(1...3)
-                                .focused($isTitleFocused)
-                                .foregroundStyle(Color.black.opacity(0.7))
-                                .frame(maxWidth: .infinity)
-                                .padding(.horizontal)
-                            // [cite: 35] 關鍵語法：監聽邊界尺寸變化，一旦變動就更新變數
-                                .onGeometryChange(for: CGFloat.self, of: { proxy in
-                                    proxy.size.height // 鎖定偵測高度
-                                }, action: { newValue in
-                                    textHeight = newValue - 24 // 同步到狀態變數
-                                })
+                                
                         }
+                        
+                        TextField("", text: $cardTitle, axis: .vertical)
+                            .font(selectedTitleFont.targetFont(48))
+                            .lineLimit(1...3)
+                            .focused($isTitleFocused)
+                     
+                            // 根據 WCAG 背景相對亮度動態設定顏色 (亮底黑字，暗底白字)
+                            .foregroundStyle(selectedTapeColor.color.foregroundColorForBackground())
+                            // 💡 確保濾鏡判斷也使用 relativeLuminance，並對齊 0.3 的門檻
+                            .blendMode(selectedTapeColor.color.relativeLuminance < 0.45 ? .plusLighter : .normal)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal)
+                            .onGeometryChange(for: CGFloat.self) { proxy in
+                                proxy.size.height // 鎖定偵測高度
+                            } action: { newValue in
+                                let isFirstFont = selectedTitleFont == FontManager.shared.titleFontOptions[0]
+
+                                // 💡 現代 Swift 元組匹配：用「逗號」串接相同的 case 分支
+                                let offset: CGFloat = switch (isFirstFont, selectedTapeColor.name) {
+                                case (true, _):
+                                    16.0
+
+                                // 🎯 正確寫法：條件A , 條件B (兩者只要中一個，就給 -24.0)
+                                case (false, "deep-red-tape"), (false, "deep-green-tape"), (false, "deep-blue-tape"), (false, "deep-pink-tape"), (false, "deep-purple-tape"):
+                                    12.0
+
+                                default:
+                                    -24.0
+                                }
+
+                                textHeight = max(0, newValue + offset)
+                            }
+                            .background {
+                                // 🎯 2026 現代化安全寫法：直接比對字體名稱，不再盲目信任陣列的第 0 個元素！
+                                // 💡 請根據你 FontManager 裡 System 字體的設定，選擇用 fontName 或 displayName 比對
+                                let isSystemFont = selectedTitleFont.fontName == "System"
+                                
+                                // 備用方案：如果你的系統字體在定義時，displayName 寫的是 "系統字體" 或 "System"，也可以這樣寫：
+                                // let isSystemFont = (selectedTitleFont.displayName == "系統字體" || selectedTitleFont.displayName == "System")
+
+                                let offset: CGFloat = switch (isSystemFont, selectedTapeColor.name) {
+                                case (true, _):
+                                    // 🌟 當確定是 System 系統字體時，100% 給予 16.0 的高度偏移（完美對齊你的需求！）
+                                    16.0
+                                    
+                                case (false, "deep-red-tape"), (false, "deep-green-tape"), (false, "deep-blue-tape"), (false, "deep-pink-tape"), (false, "deep-purple-tape"):
+                                    // 如果是其他自訂字體，且屬於需要貼齊的深色膠帶系列 [cite: 115]
+                                    12.0
+                                    
+                                default:
+                                    // 其他自訂手寫字體搭配普通膠帶，內縮 -24.0 [cite: 115]
+                                    -24.0
+                                }
+
+                                // 將膠帶放在這裡，它會自動 100% 貼齊 TextField 的實際高度，完全零延遲
+                                if !cardTitle.isEmpty  {
+                                    Image(selectedTapeColor.name)
+                                        .resizable()
+                                        .padding(.vertical, -offset / 2) // 透過上下相對內外距，完美推擠出正確高度
+                                }
+                            }
+
+                    
                     }
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
-                    
+                    .padding(.bottom)
+                   
                     // 內文
                     ZStack(alignment: .topLeading) {
                         if cardBodyText.isEmpty {
@@ -567,15 +625,16 @@ struct eCardHomeView: View {
                         
                         TextField("", text: $cardBodyText, axis: .vertical)
                         .font(selectedFont.targetFont(18))
-                        .foregroundStyle(Color.init(uiColor: .darkGray))
+                        .foregroundStyle(Color.black.opacity(0.9))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .focused($isBodyFocused)
                     }
                     .padding(.horizontal, 26)
+                    .padding(.bottom, 50)
                     
                 }
                 .alignmentGuide(.top) { d in (d[.top] - max(0, imageHeight - 6))}
-                .padding(.bottom, 50)
+                
                 
             }
             .frame(width: 300)
@@ -610,7 +669,28 @@ struct eCardHomeView: View {
 
 
 
+extension Color {
+    // 🎯 最新標準：WCAG 相對亮度計算 (Gamma-corrected)
+    var relativeLuminance: Double {
+        let uiColor = UIColor(self)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
 
+        // 進行 Gamma 校正
+        let rC = r <= 0.03928 ? r / 12.92 : pow((r + 0.055) / 1.055, 2.4)
+        let gC = g <= 0.03928 ? g / 12.92 : pow((g + 0.055) / 1.055, 2.4)
+        let bC = b <= 0.03928 ? b / 12.92 : pow((b + 0.055) / 1.055, 2.4)
+
+        // 回傳標準相對亮度
+        return 0.2126 * rC + 0.7152 * gC + 0.0722 * bC
+    }
+
+    func foregroundColorForBackground() -> Color {
+        // 💡 WCAG 官方定義白/黑字的切換閾值通常在 0.179
+        // 為了確保你的 #e6589b (相對亮度約 0.26) 能顯示白字，我們將視覺門檻稍微提高到 0.3
+        return self.relativeLuminance > 0.45 ? .black.opacity(0.75) : .white.opacity(0.8)
+    }
+}
 
 
 

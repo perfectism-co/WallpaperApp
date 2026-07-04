@@ -11,7 +11,6 @@ struct FontPickerToolbarModifier: ViewModifier {
     @Binding var selectedTitleFont: CustomFontOption
     @Binding var selectedTapeColor: TapeColorOption
     @Binding var selectedCard: CardType
-    
     var isTitleFocused: FocusState<Bool>.Binding
     var isBodyFocused: FocusState<Bool>.Binding
     
@@ -46,7 +45,8 @@ extension View {
             FontPickerToolbarModifier(
                 selectedFont: selectedFont,
                 selectedTitleFont: selectedTitleFont,
-                selectedTapeColor: selectedTapeColor, selectedCard: selectedCard,
+                selectedTapeColor: selectedTapeColor,
+                selectedCard: selectedCard,
                 isTitleFocused: isTitleFocused,
                 isBodyFocused: isBodyFocused
             )
