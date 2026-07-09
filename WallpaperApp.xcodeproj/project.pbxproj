@@ -10,6 +10,13 @@
 		9A5B10142FE6D263008449A0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9A5B10102FE6D263008449A0 /* Assets.xcassets */; };
 		9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B10122FE6D263008449A0 /* WallpaperAppApp.swift */; };
 		9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B10172FE6D833008449A0 /* AppRouteManager.swift */; };
+		9A7E189B2FF8F4D000A3CD15 /* eCardEdittingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E189A2FF8F4D000A3CD15 /* eCardEdittingView.swift */; };
+		9A7E18A82FFCF26000A3CD15 /* CardComponentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18A72FFCF24800A3CD15 /* CardComponentType.swift */; };
+		9A7E18AA2FFCF28300A3CD15 /* UICardEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18A92FFCF28200A3CD15 /* UICardEditorView.swift */; };
+		9A7E18AC2FFCF8F800A3CD15 /* tset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18AB2FFCF8ED00A3CD15 /* tset.swift */; };
+		9A7E18B42FFD4EBD00A3CD15 /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18B32FFD4EBB00A3CD15 /* ActivityViewController.swift */; };
+		9A7E18B62FFD607A00A3CD15 /* Untitled 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18B52FFD607700A3CD15 /* Untitled 2.swift */; };
+		9A7E18B82FFE10B500A3CD15 /* eCardEdittingTemple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18B72FFE10AE00A3CD15 /* eCardEdittingTemple.swift */; };
 		9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379002FE7DE6900FE6851 /* WallpapersView.swift */; };
 		9AA379032FE9204100FE6851 /* AdvertisementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379022FE9204100FE6851 /* AdvertisementView.swift */; };
 		9AA379052FE975F500FE6851 /* eCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379042FE975F500FE6851 /* eCardHomeView.swift */; };
@@ -43,6 +50,13 @@
 		9A5B10102FE6D263008449A0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9A5B10122FE6D263008449A0 /* WallpaperAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperAppApp.swift; sourceTree = "<group>"; };
 		9A5B10172FE6D833008449A0 /* AppRouteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouteManager.swift; sourceTree = "<group>"; };
+		9A7E189A2FF8F4D000A3CD15 /* eCardEdittingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eCardEdittingView.swift; sourceTree = "<group>"; };
+		9A7E18A72FFCF24800A3CD15 /* CardComponentType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardComponentType.swift; sourceTree = "<group>"; };
+		9A7E18A92FFCF28200A3CD15 /* UICardEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICardEditorView.swift; sourceTree = "<group>"; };
+		9A7E18AB2FFCF8ED00A3CD15 /* tset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tset.swift; sourceTree = "<group>"; };
+		9A7E18B32FFD4EBB00A3CD15 /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
+		9A7E18B52FFD607700A3CD15 /* Untitled 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Untitled 2.swift"; sourceTree = "<group>"; };
+		9A7E18B72FFE10AE00A3CD15 /* eCardEdittingTemple.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eCardEdittingTemple.swift; sourceTree = "<group>"; };
 		9AA379002FE7DE6900FE6851 /* WallpapersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpapersView.swift; sourceTree = "<group>"; };
 		9AA379022FE9204100FE6851 /* AdvertisementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvertisementView.swift; sourceTree = "<group>"; };
 		9AA379042FE975F500FE6851 /* eCardHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eCardHomeView.swift; sourceTree = "<group>"; };
@@ -116,6 +130,8 @@
 		9A5B10192FE6D865008449A0 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				9A7E18B32FFD4EBB00A3CD15 /* ActivityViewController.swift */,
+				9A7E18A92FFCF28200A3CD15 /* UICardEditorView.swift */,
 				9AB732202FF41303001BD827 /* PhotoUploadViewController.swift */,
 				9AA3792D2FED5C6600FE6851 /* FontPickerToolbarModifier.swift */,
 				9AA3792B2FED5B4C00FE6851 /* FontManager.swift */,
@@ -129,11 +145,15 @@
 		9A5B101C2FE7B5D4008449A0 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				9A7E18B52FFD607700A3CD15 /* Untitled 2.swift */,
+				9A7E18AB2FFCF8ED00A3CD15 /* tset.swift */,
 				9AB732292FF8110D001BD827 /* Untitled.swift */,
 				9AA379102FEB649B00FE6851 /* Compoments */,
 				9AA379002FE7DE6900FE6851 /* WallpapersView.swift */,
 				9AA379022FE9204100FE6851 /* AdvertisementView.swift */,
 				9AA379042FE975F500FE6851 /* eCardHomeView.swift */,
+				9A7E189A2FF8F4D000A3CD15 /* eCardEdittingView.swift */,
+				9A7E18B72FFE10AE00A3CD15 /* eCardEdittingTemple.swift */,
 				9AA379132FEB8A1B00FE6851 /* Test.swift */,
 				9AA379152FEB92AD00FE6851 /* test2.swift */,
 				9AA3791B2FED273F00FE6851 /* IGTextEditorView.swift */,
@@ -171,6 +191,7 @@
 		9AB732262FF668B4001BD827 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				9A7E18A72FFCF24800A3CD15 /* CardComponentType.swift */,
 				9AB732272FF668DF001BD827 /* TapeColorOption.swift */,
 			);
 			path = Model;
@@ -254,21 +275,28 @@
 			files = (
 				9AA379032FE9204100FE6851 /* AdvertisementView.swift in Sources */,
 				9AA379072FE98E7800FE6851 /* ButtonTest.swift in Sources */,
+				9A7E18B62FFD607A00A3CD15 /* Untitled 2.swift in Sources */,
 				9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */,
 				9AB732282FF668EA001BD827 /* TapeColorOption.swift in Sources */,
+				9A7E18B42FFD4EBD00A3CD15 /* ActivityViewController.swift in Sources */,
 				9AA3792E2FED5C6800FE6851 /* FontPickerToolbarModifier.swift in Sources */,
+				9A7E18AC2FFCF8F800A3CD15 /* tset.swift in Sources */,
 				9AA379182FEBDCCC00FE6851 /* getDominantColor.swift in Sources */,
 				9AA3790D2FEA577800FE6851 /* CustomTabView.swift in Sources */,
 				9AB732232FF41723001BD827 /* PhotoUploadView.swift in Sources */,
 				9AA3791A2FEBFAA200FE6851 /* ColorThemeManager.swift in Sources */,
 				9AB732252FF41C26001BD827 /* CardPhoto.swift in Sources */,
 				9AA379162FEB92AD00FE6851 /* test2.swift in Sources */,
+				9A7E189B2FF8F4D000A3CD15 /* eCardEdittingView.swift in Sources */,
 				9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */,
 				9AA379142FEB8A1B00FE6851 /* Test.swift in Sources */,
+				9A7E18AA2FFCF28300A3CD15 /* UICardEditorView.swift in Sources */,
 				9AA379322FED5CD100FE6851 /* FontPickerToolbar.swift in Sources */,
 				9AA379052FE975F500FE6851 /* eCardHomeView.swift in Sources */,
 				9AA3790B2FEA3B6700FE6851 /* CustomTabViewTest.swift in Sources */,
+				9A7E18A82FFCF26000A3CD15 /* CardComponentType.swift in Sources */,
 				9AA379122FEB6DCE00FE6851 /* GlassView.swift in Sources */,
+				9A7E18B82FFE10B500A3CD15 /* eCardEdittingTemple.swift in Sources */,
 				9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */,
 				9AB7322A2FF8110F001BD827 /* Untitled.swift in Sources */,
 				9AA379092FEA372900FE6851 /* CustomTabViewD.swift in Sources */,
