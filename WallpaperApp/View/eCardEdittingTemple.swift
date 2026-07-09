@@ -38,7 +38,7 @@ struct CanvasElement: Identifiable {
     var color: Color = .black // 文字顏色 或 貼紙填色
     var fontName: String = "System"
     var isEditing: Bool = false // 🔴 新增：標記是否處於文字編輯狀態
-    
+    var istextAlignCenter: Bool = true
     
     // 照片屬性
     var rawImage: UIImage? = nil
@@ -95,18 +95,50 @@ class FilterProcessor {
     }
 }
 
-// 用於渲染相對座標點的自訂幾何形狀
+
+// 用於平滑渲染相對座標點的自訂幾何形狀
 struct DoodleShape: Shape {
-    // 🟢 修正：接收多條筆跡並逐一繪製路徑
     var strokes: [[CGPoint]]
     
     func path(in rect: CGRect) -> Path {
         var path = Path()
+        
         for stroke in strokes {
-            guard let firstPoint = stroke.first else { continue }
-            path.move(to: firstPoint)
-            for point in stroke.dropFirst() {
-                path.addLine(to: point)
+            guard stroke.count > 0 else { continue }
+            
+            // 如果只有一個點，畫一個小點
+            if stroke.count == 1 {
+                path.move(to: stroke[0])
+                path.addEllipse(in: CGRect(x: stroke[0].x - 2, y: stroke[0].y - 2, width: 4, height: 4))
+                continue
+            }
+            
+            path.move(to: stroke[0])
+            
+            // 如果只有兩個點，直接連直線
+            if stroke.count == 2 {
+                path.addLine(to: stroke[1])
+                continue
+            }
+            
+            // 三個點以上，使用貝茲曲線進行平滑幾何轉換
+            for i in 1..<stroke.count - 1 {
+                let currentPoint = stroke[i]
+                let nextPoint = stroke[i + 1]
+                
+                // 計算當前點與下一個點的中點，作為幾何路徑 ancher 的終點
+                let midPoint = CGPoint(
+                    x: (currentPoint.x + nextPoint.x) / 2,
+                    y: (currentPoint.y + nextPoint.y) / 2
+                )
+                
+                // 以當前點為控制點（Control Point），向中點繪製曲線
+                path.addQuadCurve(to: midPoint, control: currentPoint)
+            }
+            
+            // 連接最後一個點
+            if let lastPoint = stroke.last {
+                path.addLine(to: lastPoint)
             }
         }
         return path
@@ -161,275 +193,25 @@ struct StickerSheetView: View {
 
 //----------------------------
 
-//struct ElementWrapperView<Content: View>: View {
-//    @Binding var element: CanvasElement
-//    var isSelected: Bool
-//    var isDrawingMode: Bool
-//    var onDelete: () -> Void
-//    var content: Content
-//    
-//    
-//    // 💡 用於記錄手勢開始時的初始狀態，防止數值連續疊加導致元件飛走
-//    @State private var basePosition: CGPoint = .zero
-//    @State private var isDragging: Bool = false
-//    
-//   
-//    
-//    init(
-//        @ViewBuilder content: () -> Content,
-//        element: Binding<CanvasElement>,
-//        isSelected: Bool,
-//        isDrawingMode: Bool,
-//        onDelete: @escaping () -> Void
-//    ) {
-//        self.content = content()
-//        self._element = element
-//        self.isSelected = isSelected
-//        self.isDrawingMode = isDrawingMode // 🟢 賦值
-//        self.onDelete = onDelete
-//    }
-//    
-//    
-//    // 💡 幾何依據：依據元件型別，動態計算或讀取未經縮放時的「真實基礎尺寸」
-//    private var elementBaseSize: CGSize {
-//        switch element.type {
-//        case .text:
-//            // 文字寬度在視圖中固定為 300，高度給定合理的預設估計值 100
-//            return CGSize(width: 300, height: 100)
-//        case .sticker:
-//            // 貼紙尺寸固定為 80 x 80
-//            return CGSize(width: 80, height: 80)
-//        case .photo:
-//            if let uiImage = element.rawImage {
-//                let baseWidth: CGFloat = 200
-//                let aspectRatio = uiImage.size.height / uiImage.size.width
-//                let baseHeight = baseWidth * aspectRatio
-//                // 依據相片規格計算：寬度增加左右 padding (10 + 10) = 220
-//                // 高度增加上下 padding (10 + 10) 與底部額外 padding 20 = baseHeight + 40
-//                return CGSize(width: baseWidth + 50, height: baseHeight + 40)
-//            }
-//            return CGSize(width: 220, height: 220)
-//        case .doodle:
-//            // 塗鴉直接採用 convertPointsToDoodleElement() 算出的精準 doodleSize
-//            return element.doodleSize
-//        }
-//    }
-//    
-//    var body: some View {
-//        content
-//            .frame(minWidth: 50, minHeight: 50)
-//            .scaleEffect(element.scale)
-//            .rotationEffect(element.rotation)
-////            .overlay(
-////                // 邊框線
-////                Rectangle()
-////                    .stroke(
-////                        (isSelected && !isDrawingMode) ? Color.gray : .clear,
-////                        style: StrokeStyle(
-////                            lineWidth: 1,
-////                            dash: [5, 3] // 5 點長度的實線，3 點長度的空白
-////                        )
-////                    )
-////                    .scaleEffect(element.scale)
-////                    .rotationEffect(element.rotation)
-////            )
-//            .position(element.position)
-////            .gesture(
-////                // 🟢 修正四：若正在編輯文字或處於塗鴉模式，則停用拖動手勢，避免手勢衝突
-////                (element.isEditing || isDrawingMode) ? nil : DragGesture()
-////                    .onChanged { value in
-////                        element.position = value.location
-////                    }
-////            )
-//            .gesture(
-//                (element.isEditing || isDrawingMode) ? nil :
-//                DragGesture()
-//                    .onChanged { value in
-//                        // 當手指點下剛觸發時，鎖定當前的絕對座標作為基準值
-//                        if !isDragging {
-//                            isDragging = true
-//                            basePosition = element.position
-//                        }
-//                        
-//                        // 透過基準值加上手指移動的絕對位移量（translation）來更新坐標
-//                        element.position = CGPoint(
-//                            x: basePosition.x + value.translation.width,
-//                            y: basePosition.y + value.translation.height
-//                        )
-//                        
-//                        // 🔴 限制一：若是相片，即時執行邊界與尺寸限制，不可超出 360 x 640
-//                        if element.type == .photo {
-//                            clampPhotoGeometry()
-//                        }
-//                    }
-//                    .onEnded { _ in
-//                        isDragging = false // 手勢結束，釋放鎖定
-//                    }
-//            )
-//            
-////            .overlay(
-////                Group {
-////                    if isSelected && !isDrawingMode {
-////                        // 右上方：刪除按鈕
-////                        Button(action: { onDelete() }) {
-////                            Image(systemName: "xmark.circle.fill")
-////                                .foregroundColor(.red)
-////                                .background(Circle().fill(Color.white))
-////                        }
-////                        .offset(x: (elementBaseSize.width / 2) * element.scale,
-////                                                        y: -(elementBaseSize.height / 2) * element.scale)
-////                        //.offset(x: 40 * element.scale, y: -40 * element.scale) // 需根據縮放計算偏移量
-////                        .rotationEffect(element.rotation)
-////                        .position(element.position)
-////                        
-////                        // 🔴 新增：左上方：編輯按鈕（僅在文字元件且非編輯狀態時顯示）
-////                        if element.type == .text && !element.isEditing {
-////                            Button(action: {
-////                                element.isEditing = true // 點擊切換為編輯狀態
-////                            }) {
-////                                Image(systemName: "pencil.circle.fill")
-////                                    .foregroundColor(.accentColor)
-////                                    .background(Circle().fill(Color.white))
-////                            }
-////                            .offset(x: -(elementBaseSize.width / 2) * element.scale,
-////                                                                y: -(elementBaseSize.height / 2) * element.scale)
-////                            //.offset(x: -40 * element.scale, y: -40 * element.scale) // 左上方偏移
-////                            .rotationEffect(element.rotation)
-////                            .position(element.position)
-////                        }
-////                        
-////                        // 右下角：旋轉 + 縮放控制鈕
-//////                        Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-//////                            .foregroundColor(.blue)
-//////                            .background(Circle().fill(Color.white))
-//////                            .offset(x: 40 * element.scale, y: 40 * element.scale)
-//////                            .rotationEffect(element.rotation)
-//////                            .position(element.position)
-//////                            .gesture(
-//////                                DragGesture()
-//////                                    .onChanged { value in
-//////                                        let center = element.position
-//////                                        let touchPoint = value.location
-//////                                        
-//////                                        // 1. 計算旋轉角度
-//////                                        let radians = atan2(touchPoint.y - center.y, touchPoint.x - center.x)
-//////                                        element.rotation = Angle(radians: Double(radians))
-//////                                        
-//////                                        // 2. 計算等比例縮放（依據拖動距離與基準距離的比率）
-//////                                        let distance = sqrt(pow(touchPoint.x - center.x, 2) + pow(touchPoint.y - center.y, 2))
-//////                                        let baseDistance: CGFloat = 56.5 // 假設初始半徑基準值
-//////                                        element.scale = max(0.5, distance / baseDistance) // 限制最小縮放比
-//////                                    }
-//////                            )
-////                                                    
-////                            Image(systemName: "arrow.triangle.2.circlepath.circle.fill")
-////                                .foregroundColor(.accentColor)
-////                                .background(Circle().fill(Color.white))
-////                                // 1. 依據當前型別倍率與縮放比例設定動態位移（右下角為正 X, 正 Y）
-////                                .offset(x: (elementBaseSize.width / 2) * element.scale,
-////                                                                    y: (elementBaseSize.height / 2) * element.scale)
-////                                // 2. 隨元件整體角度進行旋轉變換
-////                                .rotationEffect(element.rotation)
-////                                // 3. 將控制鈕定位在畫布的絕對中心點上
-////                                .position(element.position)
-////                                // 4. 手勢追蹤與幾何運算
-////                                .gesture(
-////                                    DragGesture()
-////                                        .onChanged { value in
-////                                            let center = element.position
-////                                            let touchPoint = value.location
-////                                            
-////                                            // 🟢 幾何公式依據一：動態計算右下角頂點相對於中心點的初始未旋轉夾角
-////                                            let initialAngle = atan2(elementBaseSize.height / 2, elementBaseSize.width / 2)
-////                                            // 計算手指拖曳點與中心點的絕對夾角
-////                                            let currentRadians = atan2(touchPoint.y - center.y, touchPoint.x - center.x)
-////                                            // 扣除初始夾角，得到純粹的旋轉弧度，防止手指按下的瞬間元件發生角度跳轉
-////                                            element.rotation = Angle(radians: Double(currentRadians - initialAngle))
-////                                            
-////                                            // 🟢 幾何公式依據二：運用勾股定理動態算出未縮放前的半徑半邊長
-////                                            let baseDistance = sqrt(pow(elementBaseSize.width / 2, 2) + pow(elementBaseSize.height / 2, 2))
-////                                            // 計算當前手指到元件中心的真實物理距離
-////                                            let currentDistance = sqrt(pow(touchPoint.x - center.x, 2) + pow(touchPoint.y - center.y, 2))
-////                                            
-////                                            // 動態設定等比例縮放比率
-////                                            element.scale = currentDistance / baseDistance
-////                                            
-////                                            // 縮放時即時執行「旋轉外包圍框」限制，確保放大不越界
-////                                            if element.type == .photo {
-////                                                clampPhotoGeometry()
-////                                            }
-////                                        }
-////                                )
-////                    }
-////                }
-////            )
-//    }
-//    // 放在 ElementWrapperView 內部，用以計算與約束相片幾何狀態的私有函數
-//    private func clampPhotoGeometry() {
-//        guard element.type == .photo, let uiImage = element.rawImage else { return }
-//        
-//        let baseWidth = elementBaseSize.width
-//        let baseHeight = elementBaseSize.height
-//        
-//        // 取得當前的旋轉弧度絕對值
-//        let theta = element.rotation.radians
-//        let cosT = abs(cos(theta))
-//        let sinT = abs(sin(theta))
-//        
-//        // 幾何公式：計算矩形在經過 theta 角度旋轉後，外包圍框在 X 軸與 Y 軸上外擴的「最大半寬高」
-//        let baseExtX = (baseWidth / 2) * cosT + (baseHeight / 2) * sinT
-//        let baseExtY = (baseWidth / 2) * sinT + (baseHeight / 2) * cosT
-//        
-//        // 逆推在當前旋轉角度下，畫布（360x640）允許的最大安全縮放比，直接截斷過度放大的操作
-//        let maxScaleX = 180.0 / baseExtX
-//        let maxScaleY = 320.0 / baseExtY
-//        let maxAllowedScale = min(maxScaleX, maxScaleY)
-//        
-//        if element.scale > maxAllowedScale {
-//            element.scale = maxAllowedScale
-//        }
-//        if element.scale < 0.3 {
-//            element.scale = 0.3 // 限制最小縮放
-//        }
-//        
-//        // 結合最終確定的縮放值，求出最外邊緣的外擴半寬高
-//        let extX = baseExtX * element.scale
-//        let extY = baseExtY * element.scale
-//        
-//        // 運用外包圍框邊緣，夾擠並鎖死中心點 position 坐標
-//        let minX = extX
-//        let maxX = 360.0 - extX
-//        let minY = extY
-//        let maxY = 640.0 - extY
-//        
-//        element.position.x = min(max(element.position.x, minX), maxX)
-//        element.position.y = min(max(element.position.y, minY), maxY)
-//    }
-//    
-//}
-//
-
-
-//---------------------
-
-
 
 struct CanvasTextView: View {
     @Binding var element: CanvasElement
     @FocusState var isKeyboardFocused: Bool
     let fonts = ["Helvetica", "Courier", "Papyrus", "Georgia"]
-    @State private var istextAlignCenter: Bool = true
+//    @State private var istextAlignCenter: Bool = true
+    private let baseFontSize: CGFloat = 24
+
     
     var body: some View {
         ZStack {
             if element.isEditing {
                 // 🔥 編輯狀態：顯示輸入框，允許打字
                 TextField("請輸入文字", text: $element.content, axis: .vertical)
-                    .font(.custom(element.fontName, size: 20))
+                    .font(.custom(element.fontName, size: baseFontSize * element.scale))
                     .foregroundColor(element.color)
                     .focused($isKeyboardFocused)
-                    .frame(maxWidth: 300, alignment: istextAlignCenter ? .center : .leading) // 限制固定寬度，讓文字滿了自動換行
-                    .multilineTextAlignment(istextAlignCenter ? .center : .leading)
+                    .frame(maxWidth: 300, alignment: element.istextAlignCenter ? .center : .leading) // 限制固定寬度，讓文字滿了自動換行
+                    .multilineTextAlignment(element.istextAlignCenter ? .center : .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .onAppear {
                         // 進入此狀態時，自動聚焦並彈出鍵盤
@@ -459,9 +241,9 @@ struct CanvasTextView: View {
                             }
                             
                             Button {
-                                istextAlignCenter.toggle()
+                                element.istextAlignCenter.toggle()
                             }label: {
-                                Image(systemName: istextAlignCenter ? "text.alignleft" : "text.aligncenter")
+                                Image(systemName: element.istextAlignCenter ? "text.alignleft" : "text.aligncenter")
                             }
                             
                             Spacer()
@@ -478,15 +260,15 @@ struct CanvasTextView: View {
             }else {
                 // 🔥 顯示狀態：使用純 Text，手勢不會被攔截，可自由移動
                 Text(element.content.isEmpty ? "請輸入文字" : element.content)
-                    .font(.custom(element.fontName, size: 20))
+                    .font(.custom(element.fontName, size: baseFontSize * element.scale))
                     .foregroundColor(element.color)
                     .lineLimit(nil)
-                    .frame(maxWidth: 300, alignment: istextAlignCenter ? .center : .leading) // 保持與編輯狀態相同的固定寬度
-                    .multilineTextAlignment(istextAlignCenter ? .center : .leading)
+                    .frame(maxWidth: 300, alignment: element.istextAlignCenter ? .center : .leading) // 保持與編輯狀態相同的固定寬度
+                    .multilineTextAlignment(element.istextAlignCenter ? .center : .leading)
                     .fixedSize(horizontal: true, vertical: true)
             }
         }
-        
+       
     }
 }
 
@@ -502,6 +284,7 @@ import PhotosUI
 struct MainCanvasView: View {
     @State private var elements: [CanvasElement] = []
     @State private var selectedElementID: UUID? = nil
+    @State private var selectedToColorChangeElementID: UUID? = nil
     @State private var showStickerSheet = false
     @State private var stickerGlobalColor = Color.black
     
@@ -545,14 +328,13 @@ struct MainCanvasView: View {
                 let baseWidth: CGFloat = 200
                 let aspectRatio = uiImage.size.height / uiImage.size.width
                 let baseHeight = baseWidth * aspectRatio
-                return CGSize(width: baseWidth + 50, height: baseHeight + 40)
+                return CGSize(width: baseWidth + 50 , height: baseHeight + 40)
             }
-            return CGSize(width: 220, height: 220)
+            return CGSize(width: 220 , height: 220 )
         case .doodle:
             return element.doodleSize
         }
     }
-    
     
     
     var body: some View {
@@ -647,7 +429,7 @@ struct MainCanvasView: View {
                                 let newText = CanvasElement(
                                     type: .text,
                                     content: "請輸入文字",
-                                    position: CGPoint(x: 200, y: 300),
+                                    position: CGPoint(x: 180, y: 320),
                                     isEditing: true // 🔴 關鍵：一開始新增就是編輯狀態
                                 )
                                 elements.append(newText)
@@ -662,6 +444,21 @@ struct MainCanvasView: View {
                     }
                 }
                 .padding(.horizontal)
+                
+                ForEach($elements) { $element in
+                    let isSelected = selectedElementID == element.id
+                    if element.type == .text, element.isEditing {
+                        VStack{                            
+                            Spacer()
+                            CanvasTextView(element: $element)
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity)
+                        .ignoresSafeArea()
+                        .background(Color.black.opacity(0.5))
+                    }
+                }
+                
             }
             .sheet(isPresented: $showStickerSheet) {
                 StickerSheetView(
@@ -707,17 +504,20 @@ struct MainCanvasView: View {
             Color.init(cgColor: .init(gray: 0.85, alpha: 1))
                 .onTapGesture {
                     selectedElementID = nil
+                    selectedToColorChangeElementID = nil
                     // 若有文字正在編輯，收起鍵盤
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                 }
             
             ForEach($elements) { $element in
                 let isSelected = !isExporting && selectedElementID == element.id
-                
+               
                 Group {
                     switch element.type {
                     case .text:
-                        CanvasTextView(element: $element)
+                        if !element.isEditing {
+                            CanvasTextView(element: $element)
+                        }
                     case .sticker:
                         Image(element.content)
                             .resizable()
@@ -736,12 +536,18 @@ struct MainCanvasView: View {
                         }
                     case .doodle:
                         DoodleShape(strokes: element.doodleStrokes)
-                            .stroke(element.color, lineWidth: 4)
+                            .stroke(
+                                element.color,
+                                style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+                            )
                             .frame(width: element.doodleSize.width, height: element.doodleSize.height)
                             .contentShape(Rectangle())
                     }
                 }
-                .scaleEffect(element.scale)
+                //💡關鍵修改：在縮放與旋轉之前，擴展物件周圍的手勢感應範圍（不要全局，只要周圍）
+                .padding(40)
+                .contentShape(Rectangle()) // 讓透明的 padding 區域也能觸發手勢
+                .scaleEffect(element.type == .text ? 1.0 : element.scale)
                 .rotationEffect(element.rotation)
                 .position(element.position)
                 // 🟢 移除所有外框線與按鈕，改採 Instagram Stories 純手勢操作
@@ -815,9 +621,9 @@ struct MainCanvasView: View {
                 .onTapGesture(count: 1) {
                     if element.type == .text {
                         element.isEditing = true
-                        selectedElementID = element.id
+                        //selectedElementID = element.id
                     }
-                    selectedElementID = element.id
+                    selectedToColorChangeElementID = element.id
                 }
             }
             
@@ -840,9 +646,14 @@ struct MainCanvasView: View {
                     )
                 
                 DoodleShape(strokes: sessionStrokes + [currentStroke])
-                    .stroke(selectedDoodleColor, lineWidth: 4)
+                    .stroke(
+                        selectedDoodleColor,
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+                    )
             }
         }
+        .frame(width: 360, height: 640)
+        .clipped()
     }
     
     // MARK: - 相片幾何限幅運算核心
@@ -891,14 +702,24 @@ struct MainCanvasView: View {
    
     
     // MARK: - 刪除區域判斷
-
     private func isPointInTrashZone(_ point: CGPoint) -> Bool {
-        // 因 position 手勢 value.location 是相對於螢幕，需要做點幾何判斷
-        // 簡單的方式是在畫布上方放一個透明層攔截位置，或者根據畫布在螢幕上的位置進行換算。
-        // 這裏假設 dragLocation 是相對於畫布 ZStack 座標系統。
+        // 1. 定義垃圾桶判定區塊的寬高尺寸
+        let trashWidth: CGFloat = 80
+        let trashHeight: CGFloat = 80
         
-        // 幾何依據：手指點的位置在畫布底部 80 像素內
-        return point.y > (canvasSize.height - trashZoneHeight)
+        // 2. 計算 X 軸的中央安全範圍限制
+        let canvasCenterX = canvasSize.width / 2
+        let minX = canvasCenterX - (trashWidth / 2) // 180 - 40 = 140
+        let maxX = canvasCenterX + (trashWidth / 2) // 180 + 40 = 220
+        
+        // 3. 計算 Y 軸的底部邊界限制
+        let minY = canvasSize.height - trashHeight // 640 - 80 = 560
+        
+        // 4. 幾何依據：必須同時滿足在 X 軸中央範圍內，且在 Y 軸底部範圍內
+        let isInXRange = point.x >= minX && point.x <= maxX
+        let isInYRange = point.y >= minY
+        
+        return isInXRange && isInYRange
     }
 
     
@@ -993,7 +814,7 @@ struct MainCanvasView: View {
             }
             .padding()
             .background(Color(.systemBackground))
-        } else if let selectedID = selectedElementID,
+        } else if let selectedID = selectedToColorChangeElementID,
                   let index = elements.firstIndex(where: { $0.id == selectedID }), !isDraggingElement {
             
             let element = elements[index]
@@ -1050,7 +871,23 @@ struct MainCanvasView: View {
                 }
                 .padding()
                 .background(Color(.systemBackground))
+            }else if element.type == .text {
+                // 塗鴉元件選取時：允許事後更換物件顏色
+                HStack {
+                    Text("修改文字顏色：")
+                    ForEach([Color.black, Color.red, Color.blue, Color.green, Color.orange], id: \.self) { color in
+                        Circle()
+                            .fill(color)
+                            .frame(width: 30, height: 30)
+                            .overlay(Circle().stroke(Color.white, lineWidth: element.color == color ? 3 : 0))
+                            .shadow(radius: 2)
+                            .onTapGesture { elements[index].color = color }
+                    }
+                }
+                .padding()
+                .background(Color(.systemBackground))
             }
+            
         }
     }
 
