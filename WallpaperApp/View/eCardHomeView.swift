@@ -6,97 +6,22 @@
 //
 
 import SwiftUI
-import PhotosUI
 
-
-enum CardType: String, CaseIterable, Identifiable {
-    case eCardVer1
-    case eCardVer2
-    
-    // 實作 Identifiable 要求的 id
-    var id: String { self.rawValue }
-}
 
 struct eCardHomeView: View {
-    // 💡 1. 透過環境變數取得「當前視窗」的正確縮放比例
-    @Environment(\.displayScale) var displayScale
     
     @State private var isBarHidden = false
 
-    @State private var cardTitle: String = ""
-    @State private var cardBodyText: String = ""
-    @FocusState private var isTitleFocused: Bool     // 標題專用
-    @FocusState private var isBodyFocused: Bool      // 內文專用
    
-    
-    @State private var selectedFont: CustomFontOption = FontManager.shared.defaultBodyFont
-    @State private var selectedTitleFont: CustomFontOption = FontManager.shared.defaultTitleFont
     // 選擇照片或使用當前桌布
     let uiImage = UIImage(named: "myImageName")
-    @State private var selectedItem: PhotosPickerItem?
-    @State private var selectedImage: UIImage?
-    @State private var showDialog = false
-    @State private var showPicker = false // 新增一個狀態來控制 Picker
-    // 🎯 1. 將複雜的佈局邏輯抽離成「計算型屬性」，讓 View 保持乾淨
-    private var contentMode: ContentMode {
-        selectedImage != nil ? .fit : .fill
-    }
-
-    private var imageHeightValue: CGFloat? {
-        selectedImage != nil ? nil : 300
-    }
-    
-   
-    private var sourceImageData: UIImage? {
-        // 💡 優先使用 selectedImage，沒有就降級用 uiImage
-        selectedImage ?? uiImage
-    }
-    private var styledImageView: some View {
-        Group {
-            if let imageToRender = sourceImageData {
-                Image(uiImage: imageToRender)
-                    .resizable()
-                    .aspectRatio(contentMode: contentMode)
-                    // 💡 確保傳入已經計算好的確定數值，避免編譯器超時假警報
-                    .frame(width: 300, height: imageHeightValue)
-                    .clipped()
-                    .contentShape(.rect) // iOS 26+ 推薦的小寫語法
-            } else {
-                // 防禦性 Fallback：完全沒圖時的佔位
-                Rectangle()
-                    .fill(Color.gray)
-                    .frame(width: 300, height: imageHeightValue)
-            }
-        }
-    }
-    
-    @MainActor // 💡 UI 渲染必須在主執行緒進行
-    func exportModifiedImage() -> UIImage? {
-        // 1. 將剛剛設計好的 SwiftUI View 放進渲染器
-        let renderer = ImageRenderer(content: styledImageView)
-        
-        // 2. (重要) 確保輸出圖片的解析度與目前設備螢幕比例一致，才不會模糊
-        // 💡 2. 替換為環境變數，完美適配多螢幕與高解析度設備
-        renderer.scale = displayScale
-        
-        // 3. 輸出並傳出最終的 UIImage
-        return renderer.uiImage
-    }
+ 
    
     @State private var dominantColor: Color = .clear
     
-
-    @State private var selectedCard: CardType = .eCardVer2
     @State private var showCardStyleSettings: Bool = false
     
-   
-    
-    @State private var textHeight: CGFloat = 80 // 儲存文字框高度
-    @State private var imageHeight: CGFloat = 300 // eCardVer2 自訂照片
-    
-    
-    @State private var selectedTapeColor = TapeColorOption(name: "morandi-skin-tape", hex: "#f6e4bf")
-    
+
     var body: some View {
         ZStack {
             Color.clear // 產生一個透明底板，它會精準貼齊當前的可用螢幕範圍
@@ -120,28 +45,11 @@ struct eCardHomeView: View {
                     .padding(.bottom, 20)
                     .environment(\.colorScheme, .dark)
                 
-                // 3. 根據目前的狀態，決定要渲染哪一張卡片
-                renderCard(for: selectedCard)
-//                Group {
-//                    switch selectedCard {
-//                    case .eCardVer1:
-//                        eCardVer1
-//                        
-//                    case .eCardVer2:
-//                        eCardVer2
-//                    }
-//                }
-                // 加上一點流暢的切換動畫
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedCard)
+                eCardVer1
                 
                 // 操作鍵
-                VStack{
-                    
-                }
                 Button(action: {
                     showCardStyleSettings = true
-                    // 點擊時，在兩種狀態之間切換
-//                    selectedCard = (selectedCard == .eCardVer1) ? .eCardVer2 : .eCardVer1
                 }) {
                     Text("Change Card Design")
                         .foregroundStyle(Color.init(uiColor: .label))
@@ -154,26 +62,14 @@ struct eCardHomeView: View {
                 Button{
                     
                 }label: {
-                    Text("Without Body")
+                    Text("Edit Card")
                         .foregroundStyle(Color.init(uiColor: .label))
                         .padding()
                 }
                 .frame(width: 300)
                 .glassEffect()
                 
-                
-                // 一鍵分享按鈕：每次點擊分享選單彈出時，ShareLink 會動態觸發這個 Image
-                ShareLink(
-                    item: renderCardToImage(), // 這裡已經是非 Optional 的 Image 了
-                    preview: SharePreview("自製桌布", image: renderCardToImage())
-                ) {
-                    Label("Share Your eCard", systemImage: "square.and.arrow.up")
-                        .foregroundStyle(Color.init(uiColor: .label))
-                        .padding()
-                        .frame(width: 300)
-                        .glassEffect()
-                }
-                
+
                 
                 
                 // 👇 加入這段測試用的高度佔位符，把頁面撐開！
@@ -212,138 +108,22 @@ struct eCardHomeView: View {
             // 動態切換隱藏或顯示
             .toolbar(isBarHidden ? .hidden : .visible, for: .navigationBar)
         }
-//        .toolbar {
-//            ToolbarItem(placement: .keyboard) {
-//                FontPickerToolbar(           // ← 自動判斷目前輸入哪一個
-//                    titleTextOnPage: $cardTitle, selectedFont: $selectedFont,
-//                    selectedTitleFont: $selectedTitleFont,
-//                    selectedTapeColor: $selectedTapeColor,
-//                    selectedCard: $selectedCard,
-//                    isTitleFocused: isTitleFocused
-//                )
-//            }
-//        }
-        .fontPickerToolbar(           // ← 自動判斷目前輸入哪一個
-            selectedFont: $selectedFont,
-            selectedTitleFont: $selectedTitleFont,
-            selectedTapeColor: $selectedTapeColor,
-            selectedCard: $selectedCard,
-            isTitleFocused: $isTitleFocused,
-            isBodyFocused: $isBodyFocused
-        )
-        .onTapGesture {
-            isTitleFocused = false
-            isBodyFocused = false
-        }
+
         .sheet(isPresented: $showCardStyleSettings) {
-            CardStyleSettingView
-                .presentationDragIndicator(.visible)
+           
         }
         .onAppear {
+            Task {
+                // 當圖片改變時，非同步計算最大面積顏色
+                dominantColor = await uiImage!.getDominantColor()
+            }
             // 載入時取得顏色 (如果是動態載入，這裡可以更新)
-            dominantColor = getDominantColor(from: uiImage!)
+//            dominantColor = getDominantColor(from: uiImage!)
 //            let rawColor = getDominantColor(from: uiImage!)
 //            
 //            // 2. 丟進你的獨立管理器進行「咖啡色攔截」與「未來其他顏色校正」
 //            dominantColor = ColorThemeManager.adjustDominantColor(rawColor)
         }
-    }
-    
-    // 利用 @ViewBuilder 統一處理 switch 映射
-    @ViewBuilder
-    private func renderCard(for type: CardType) -> some View {
-        switch type {
-        case .eCardVer1:
-            eCardVer1
-        case .eCardVer2:
-            eCardVer2
-        }
-    }
-    
-    
-    // 呼叫純靜態的 SnapshotCard，傳入純數值
-    @MainActor
-    private func renderCardToImage() -> Image {
-        // 1. 宣告為 any View，這樣就能完美兼容 switch 裡不同的 Struct
-        let viewToRender: any View
-        
-        // 2. 完美對齊你的 Enum (不需要 default，讓編譯器幫你檢查是否漏掉)
-        switch selectedCard {
-        case .eCardVer1:
-            viewToRender = SnapshotCard1(
-                cardTitle: cardTitle,
-                cardBodyText: cardBodyText,
-                selectedFont: selectedFont,
-                selectedTitleFont: selectedTitleFont,
-                uiImage: uiImage,
-                dominantColor: dominantColor
-            )
-        case .eCardVer2:
-            viewToRender = SnapshotCard2(
-                cardTitle: cardTitle,
-                cardBodyText: cardBodyText,
-                selectedFont: selectedFont,
-                selectedTitleFont: selectedTitleFont,
-                uiImage: exportModifiedImage(),
-                imageHeight: imageHeight,
-                selectedTapeColor: selectedTapeColor,
-                textHeight: textHeight
-            )
-        }
-        
-        // 3. 將 any View 包裝成 AnyView 讓 ImageRenderer 讀取
-        let renderer = ImageRenderer(content: AnyView(viewToRender))
-        
-        // 確保在高解析度螢幕（如視網膜螢幕）上的渲染品質
-        renderer.scale = 3.0
-        
-        // 4. 取得圖片並回傳
-        if let uiImage = renderer.uiImage {
-            return Image(uiImage: uiImage)
-        }
-        
-        // 萬一失敗的降級安全兜底（回傳空白圖片，避免 App 崩潰）
-        return Image(uiImage: UIImage())
-    }
-   
-    
-//MARK: - CardStyleSetting View
-    private var CardStyleSettingView: some View {
-        
-        VStack {
-            Group{
-                Text("Card Design")
-                    .font(.title)
-                    .padding(.top, 50)
-                    .padding(.bottom, 20)
-                Text("Choose your card design.")
-                    .font(.callout)
-                    .padding(.bottom, 50)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            
-            ScrollView {
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 30), // 設定第一個與第二個之間的水平間距
-                    GridItem(.flexible(), spacing: 30)  // 左右間距會由這裡的 spacing 決定
-                ], spacing: 30) {
-                    ForEach(CardType.allCases) { card in
-                        // 呼叫下方的輔助函式來決定要渲染哪一張圖
-                        Image(card.rawValue)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(maxWidth: .infinity)
-                            .onTapGesture {
-                                selectedCard = card // 點擊卡片自動更新狀態
-                                showCardStyleSettings = false
-                            }
-                    }
-                }
-            }
-        }
-        .padding()
-       
     }
 
     
@@ -378,55 +158,26 @@ struct eCardHomeView: View {
                 VStack(spacing: 0) {
                     Color.clear.frame(width: 300, height: 250)
                     ZStack {
-                        if cardTitle.isEmpty {
-                            Text("Enter your blessing message")
-                                .font(.custom("FlaemischeKanzleischrift", size: 48))
-                                .foregroundStyle(Color.white.opacity(0.6))
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.clear)
-                                .onTapGesture {
-                                    isTitleFocused = true
-                                }
-                        }
+                        Text("Have a Wonderful Day")
+                            .font(.custom("FlaemischeKanzleischrift", size: 48))
+                            .foregroundStyle(Color.white.opacity(0.5))
+                            .blendMode(.plusLighter)
+                            .padding()
                         
-                        TextField("", text: $cardTitle, axis: .vertical)
-                        .font(selectedTitleFont.targetFont(48))
-                        .foregroundStyle(Color.white.opacity(0.7))
-                        .blendMode(.plusLighter)
-                        .lineLimit(1...3)
-                        .padding()
-                        .focused($isTitleFocused)
                     }
                     .multilineTextAlignment(.center)
                     .padding(.bottom, 48)
                     
                     
                     ZStack(alignment: .topLeading) {
-                        if cardBodyText.isEmpty {
-                           
-                            Text("Dear [Name]\n\nSay something...")
-                                .foregroundStyle(Color.white.opacity(0.6))
-                                .padding(.horizontal, 26)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical)
-                                .background(dominantColor)
-                                .onTapGesture {
-                                    isBodyFocused = true
-                                }
-                        }
-                        
-                        TextField("",
-                                  text: $cardBodyText,
-                                  prompt: Text(""),
-                                  axis: .vertical
-                        )
-                        .font(selectedFont.targetFont(18))
-                        .foregroundStyle(Color.white.opacity(0.7))
-                        .blendMode(.plusLighter)
-                        .padding(.horizontal, 26)
-                        .padding(.vertical)
-                        .focused($isBodyFocused)
+                        Text("Dear Liam, \n\nJust a little note to remind you that you're appreciated. I hope today brings you happiness, smiles, and many wonderful moments.\n\nBest wishes,\nSophia")
+                            .font(.custom("System", size: 18))
+                            .foregroundStyle(Color.white.opacity(0.5))
+                            .blendMode(.plusLighter)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 26)
+                            .padding(.vertical)
+                       
                     }
                     .padding(.bottom, 50)
                 }
@@ -434,215 +185,35 @@ struct eCardHomeView: View {
             }
             
         }
-        .background(dominantColor)
+//        .background(dominantColor)
+        .background{
+            ZStack {
+                Rectangle()
+                    .fill(dominantColor)
+                VStack {
+                    Color.clear.frame(width: 300, height: 300)
+                    Rectangle()
+                        .fill(LinearGradient(
+                            gradient: Gradient(colors: [dominantColor.opacity(0), Color.black.opacity(0.15)]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ))
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            
+        }
+        .task(id: uiImage) {
+            // 當圖片改變時，非同步計算最大面積顏色
+            dominantColor = await uiImage!.getDominantColor()
+        }
         .frame(width: 300)
         .clipShape(RoundedRectangle(cornerRadius: 4))
         .padding(.vertical)
     }
     
     
-    private var eCardVer2: some View {
-        VStack {
-            HStack(spacing: 4) {
-                VStack {
-                    Text("✨")
-                    Spacer()
-                }
-                Text("This card design allows you to upload your own photo. Tap the photo to upload an image.")
-                    .font(.footnote)
-            }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 6)
-            .padding(.bottom, 4)
-            .frame(width: 300, alignment: .topLeading)
-            .background(Color.black.opacity(0.1))
-            .cornerRadius(4)
-//            .background {
-//                // 直接在 .glassEffect 中指定形狀
-//                Color.clear.glassEffect(.clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-//            }
-            
-            
-           
-            ZStack(alignment: .top) {
-                // Photo
-                styledImageView
-                // 🎯 iOS 26+ 最新核心語法：監聽最外層容器的視覺高度，安全且完全不卡頓
-                .onGeometryChange(for: CGFloat.self) { proxy in
-                    proxy.size.height
-                } action: { newValue in
-                    // 💡 現代安全防禦性寫法：阻擋載入瞬間的異常負數或0，確保排版引擎不回報錯誤
-                    self.imageHeight = max(0, newValue)
-                }
-                .onTapGesture {
-                    showDialog = true
-                }
-                .confirmationDialog("Choose Photo Type", isPresented: $showDialog, titleVisibility: .visible) {
-                    Button("當前手機桌布") {
-                        selectedImage = nil
-                        selectedItem = nil
-                    }
-                        
-                    // 這裡改成普通按鈕，點擊後觸發 showPicker
-                    Button("上傳照片") {
-                        showPicker = true
-                    }
-                    
-                } message: {
-                    Text("請選擇來源")
-                }
-                // 將 PhotosPicker 移出對話框，設為隱藏或透過觸發條件顯示
-                .photosPicker(isPresented: $showPicker, selection: $selectedItem, matching: .images)
-                .onChange(of: selectedItem) { oldValue, newItem in
-                    // 🎯 核心修正 2：防禦性解包與取消狀態攔截
-                    guard let newItem else {
-                        // 如果使用者在相簿裡手動「取消勾選」了所有照片
-                        // 我們也應該同步把畫面上的圖片清空，避免狀態殘留
-                        selectedImage = nil
-                        return
-                    }
-                    
-                    Task {
-                        // 載入新照片的資料
-                        if let data = try? await newItem.loadTransferable(type: Data.self),
-                           let image = UIImage(data: data) {
-                            // 在現代 Swift 嚴格併發檢查下，確保 UI 更新都在這裡安全完成
-                            selectedImage = image
-                        }
-                    }
-                }
-                
-                VStack (spacing: 35) {
-                    ZStack {
-                        
-                        // 色彩膠帶
-//                        Image(selectedTapeColor.name)
-//                            .resizable()
-//                            //.foregroundStyle(selectedTapeColor.color) // 使用 .color 屬性取得 Color 物件
-//                            .frame(maxWidth: .infinity)
-//                            .frame(height: cardTitle.isEmpty ? 80 : textHeight)
-                        
-                        // 標題
-//                       
-                        if cardTitle.isEmpty {
-                            ZStack {
-                                Image(selectedTapeColor.name)
-                                    .resizable()
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 80)
-                                
-                                Text("Blessing message...")
-                                    .font(.system(size: 30, weight: .black, design: .default))
-                                    .foregroundStyle(Color.black.opacity(0.3))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.horizontal)
-                                    .background(Color.clear)
-                                    .onTapGesture {
-                                        isTitleFocused = true
-                                    }
-                            }
-                                
-                        }
-                        
-                        TextField("", text: $cardTitle, axis: .vertical)
-                            .font(selectedTitleFont.targetFont(48))
-                            .lineLimit(1...3)
-                            .focused($isTitleFocused)
-                     
-                            // 根據 WCAG 背景相對亮度動態設定顏色 (亮底黑字，暗底白字)
-                            .foregroundStyle(selectedTapeColor.color.foregroundColorForBackground())
-                            // 💡 確保濾鏡判斷也使用 relativeLuminance，並對齊 0.3 的門檻
-                            .blendMode(selectedTapeColor.color.relativeLuminance < 0.45 ? .plusLighter : .normal)
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal)
-                            .onGeometryChange(for: CGFloat.self) { proxy in
-                                proxy.size.height // 鎖定偵測高度
-                            } action: { newValue in
-                                let isFirstFont = selectedTitleFont == FontManager.shared.titleFontOptions[0]
 
-                                // 💡 現代 Swift 元組匹配：用「逗號」串接相同的 case 分支
-                                let offset: CGFloat = switch (isFirstFont, selectedTapeColor.name) {
-                                case (true, _):
-                                    16.0
-
-                                // 🎯 正確寫法：條件A , 條件B (兩者只要中一個，就給 -24.0)
-                                case (false, "deep-red-tape"), (false, "deep-green-tape"), (false, "deep-blue-tape"), (false, "deep-pink-tape"), (false, "deep-purple-tape"):
-                                    12.0
-
-                                default:
-                                    -24.0
-                                }
-
-                                textHeight = max(0, newValue + offset)
-                            }
-                            .background {
-                                // 🎯 2026 現代化安全寫法：直接比對字體名稱，不再盲目信任陣列的第 0 個元素！
-                                // 💡 請根據你 FontManager 裡 System 字體的設定，選擇用 fontName 或 displayName 比對
-                                let isSystemFont = selectedTitleFont.fontName == "System"
-                                
-                                // 備用方案：如果你的系統字體在定義時，displayName 寫的是 "系統字體" 或 "System"，也可以這樣寫：
-                                // let isSystemFont = (selectedTitleFont.displayName == "系統字體" || selectedTitleFont.displayName == "System")
-
-                                let offset: CGFloat = switch (isSystemFont, selectedTapeColor.name) {
-                                case (true, _):
-                                    // 🌟 當確定是 System 系統字體時，100% 給予 16.0 的高度偏移（完美對齊你的需求！）
-                                    16.0
-                                    
-                                case (false, "deep-red-tape"), (false, "deep-green-tape"), (false, "deep-blue-tape"), (false, "deep-pink-tape"), (false, "deep-purple-tape"):
-                                    // 如果是其他自訂字體，且屬於需要貼齊的深色膠帶系列 [cite: 115]
-                                    12.0
-                                    
-                                default:
-                                    // 其他自訂手寫字體搭配普通膠帶，內縮 -24.0 [cite: 115]
-                                    -24.0
-                                }
-
-                                // 將膠帶放在這裡，它會自動 100% 貼齊 TextField 的實際高度，完全零延遲
-                                if !cardTitle.isEmpty  {
-                                    Image(selectedTapeColor.name)
-                                        .resizable()
-                                        .padding(.vertical, -offset / 2) // 透過上下相對內外距，完美推擠出正確高度
-                                }
-                            }
-
-                    
-                    }
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                    .padding(.bottom)
-                   
-                    // 內文
-                    ZStack(alignment: .topLeading) {
-                        if cardBodyText.isEmpty {
-                            Text("Dear [Name]\n\nSay something...")
-                                .foregroundStyle(Color.black.opacity(0.4))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.white)
-                                .onTapGesture {
-                                    isBodyFocused = true
-                                }
-                        }
-                        
-                        TextField("", text: $cardBodyText, axis: .vertical)
-                        .font(selectedFont.targetFont(18))
-                        .foregroundStyle(Color.black.opacity(0.9))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .focused($isBodyFocused)
-                    }
-                    .padding(.horizontal, 26)
-                    .padding(.bottom, 50)
-                    
-                }
-                .alignmentGuide(.top) { d in (d[.top] - max(0, imageHeight - 6))}
-                
-                
-            }
-            .frame(width: 300)
-            .background(.white)
-            .padding(.vertical)
-        }
-        
-    }
     
     
     
