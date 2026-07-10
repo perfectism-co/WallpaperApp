@@ -296,6 +296,7 @@ struct CanvasTextView: View {
     @Binding var element: CanvasElement
     @FocusState var isKeyboardFocused: Bool
     let fonts = ["Helvetica", "Courier", "Papyrus", "Georgia"]
+    let colors: [Color] = [.black, .blue, .green, .orange, .red]
     private let baseFontSize: CGFloat = 24
 
     
@@ -336,6 +337,31 @@ struct CanvasTextView: View {
                                     Image(systemName: "chevron.down")
                                 }
                             }
+                            
+                            // 2. 顏色選擇器（修正顯示問題）
+                            Menu {
+                                ForEach(colors, id: \.self) { color in
+                                    Button {
+                                        element.color = color
+                                    } label: {
+                                        // 💡 解決方案：改用 SF Symbols 的圓形與打勾圖示，並動態加上 tint 顏色
+                                        HStack {
+                                            Text("顏色")
+                                            Spacer()
+                                            Image(systemName: element.color == color ? "checkmark.circle.fill" : "circle.fill")
+                                                .tint(color) // 🔴 關鍵：直接對符號染上目標顏色
+                                        }
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text("顏色:")
+                                    Image(systemName: "circle.fill")
+                                        .tint(element.color)
+                                }
+                            }
+                            
+                            //--------------
                             
                             Button {
                                 element.istextAlignCenter.toggle()
@@ -654,7 +680,7 @@ struct MainCanvasView: View {
                 //let outerPadding: CGFloat = 60
                 
                 ZStack{
-                    Color.gray
+                    Color.clear
                         // 透過將外擴寬度逆向除以 scale，確保不論物件縮得再小，外圈物理大小在螢幕上永遠固定為 60pt
                         .frame(
                             width: ((element.type == .text ? 300 : baseSize.width) + 60 * 2) ,
@@ -742,7 +768,7 @@ struct MainCanvasView: View {
                                 case .doodle:
                                     ModernDoodleCanvas(strokes: element.doodleStrokes, brushColor: element.color, brushSize: 8, brushImageName: "marker")
                                         .frame(width: element.doodleSize.width, height: element.doodleSize.height)
-                                        .contentShape(Rectangle())
+                                        .contentShape(Rectangle())///透明的地方也可以按
                                 }
                             }
                             .scaleEffect(element.type == .text ? 1.0 : element.scale)
@@ -1280,23 +1306,7 @@ struct MainCanvasView: View {
                 }
                 .padding()
                 .background(Color(.systemBackground))
-            }else if element.type == .text {
-                // 塗鴉元件選取時：允許事後更換物件顏色
-                HStack {
-                    Text("修改文字顏色：")
-                    ForEach([Color.black, Color.red, Color.blue, Color.green, Color.orange], id: \.self) { color in
-                        Circle()
-                            .fill(color)
-                            .frame(width: 30, height: 30)
-                            .overlay(Circle().stroke(Color.white, lineWidth: element.color == color ? 3 : 0))
-                            .shadow(radius: 2)
-                            .onTapGesture { elements[index].color = color }
-                    }
-                }
-                .padding()
-                .background(Color(.systemBackground))
             }
-            
         }
     }
 
