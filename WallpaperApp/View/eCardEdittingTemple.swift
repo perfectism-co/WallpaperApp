@@ -17,7 +17,7 @@ enum ElementType {
     case doodle
 }
 
-// 支援的濾鏡款式
+// MARK: FilterType 支援的濾鏡款式
 enum FilterType: String, CaseIterable, Identifiable {
     case none = "原圖"
     case sepia = "懷舊"
@@ -28,7 +28,7 @@ enum FilterType: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
-// 擴充塗鴉點，使其包含旋轉切線角度
+// MARK: StrokePoint 擴充塗鴉點，使其包含旋轉切線角度
 struct StrokePoint: Identifiable {
     let id = UUID()
     var location: CGPoint
@@ -37,7 +37,7 @@ struct StrokePoint: Identifiable {
 
 
 
-
+// MARK: CanvasElement
 struct CanvasElement: Identifiable {
     var id = UUID()
     var type: ElementType
@@ -63,7 +63,7 @@ struct CanvasElement: Identifiable {
     var lastRotation: Angle = .zero
 }
 
-// Core Image 濾鏡處理器
+// MARK: FilterProcessor - Core Image 濾鏡處理器
 class FilterProcessor {
     static let shared = FilterProcessor()
     private let context = CIContext()
@@ -106,7 +106,7 @@ class FilterProcessor {
 }
 
 
-
+// MARK: ModernDoodleCanvas
 struct ModernDoodleCanvas: View {
     var strokes: [[StrokePoint]]
     var brushColor: Color
@@ -244,97 +244,7 @@ struct ModernDoodleCanvas: View {
 
 
 
-//struct ModernDoodleCanvas: View {
-//    var strokes: [[StrokePoint]]
-//    var brushColor: Color
-//    var brushSize: CGFloat       // 1.2mm 單線體建議設為 4~6，3.5mm 設為 12~16
-//    let brushImageName: String   // Assets 裡的圖片名稱 (如 "mark")
-//
-//    var body: some View {
-//        Canvas { context, size in
-//            let resolvedImage = context.resolve(Image(brushImageName))
-//            
-//            for stroke in strokes {
-//                for point in stroke {
-//                    // 針對每個點建立獨立的圖層，用來做正確的顏色遮罩混合
-//                    context.drawLayer { layerContext in
-//                        
-//                        // 1. 幾何平移與旋轉
-//                        layerContext.translateBy(x: point.location.x, y: point.location.y)
-//                        layerContext.rotate(by: point.angle)
-//                        
-//                        let rect = CGRect(
-//                            x: -brushSize / 2,
-//                            y: -brushSize / 2,
-//                            width: brushSize,
-//                            height: brushSize
-//                        )
-//                        
-//                        // 2. 先繪製原始筆刷形狀
-//                        layerContext.draw(resolvedImage, in: rect)
-//                        
-//                        // 3. 🟢 核心修正：使用 SourceAtop 混合模式，將顏色強制覆蓋在有像素的 Alpha 區域上
-//                        layerContext.blendMode = .sourceAtop
-//                        layerContext.fill(Path(rect), with: .color(brushColor))
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
 
-
-// 用於平滑渲染相對座標點的自訂幾何形狀
-//struct DoodleShape: Shape {
-//    var strokes: [[CGPoint]]
-//    
-//    func path(in rect: CGRect) -> Path {
-//        var path = Path()
-//        
-//        for stroke in strokes {
-//            guard stroke.count > 0 else { continue }
-//            
-//            // 如果只有一個點，畫一個小點
-//            if stroke.count == 1 {
-//                path.move(to: stroke[0])
-//                path.addEllipse(in: CGRect(x: stroke[0].x - 2, y: stroke[0].y - 2, width: 4, height: 4))
-//                continue
-//            }
-//            
-//            path.move(to: stroke[0])
-//            
-//            // 如果只有兩個點，直接連直線
-//            if stroke.count == 2 {
-//                path.addLine(to: stroke[1])
-//                continue
-//            }
-//            
-//            // 三個點以上，使用貝茲曲線進行平滑幾何轉換
-//            for i in 1..<stroke.count - 1 {
-//                let currentPoint = stroke[i]
-//                let nextPoint = stroke[i + 1]
-//                
-//                // 計算當前點與下一個點的中點，作為幾何路徑 ancher 的終點
-//                let midPoint = CGPoint(
-//                    x: (currentPoint.x + nextPoint.x) / 2,
-//                    y: (currentPoint.y + nextPoint.y) / 2
-//                )
-//                
-//                // 以當前點為控制點（Control Point），向中點繪製曲線
-//                path.addQuadCurve(to: midPoint, control: currentPoint)
-//            }
-//            
-//            // 連接最後一個點
-//            if let lastPoint = stroke.last {
-//                path.addLine(to: lastPoint)
-//            }
-//        }
-//        return path
-//    }
-//}
-
-
-//----------------
 
 struct StickerSheetView: View {
     @Binding var selectedColor: Color
@@ -379,14 +289,13 @@ struct StickerSheetView: View {
 }
 
 
-//----------------------------
 
 
+// MARK: CanvasTextView
 struct CanvasTextView: View {
     @Binding var element: CanvasElement
     @FocusState var isKeyboardFocused: Bool
     let fonts = ["Helvetica", "Courier", "Papyrus", "Georgia"]
-//    @State private var istextAlignCenter: Bool = true
     private let baseFontSize: CGFloat = 24
 
     
@@ -496,139 +405,6 @@ struct MaterializedTextView: View {
     }
 }
 
-//---------------------------
-
-//struct CanvasItemWrapper: View {
-//    @Binding var element: CanvasElement
-//    let isExporting: Bool
-//    let isDrawingMode: Bool
-//    @Binding var selectedElementID: UUID?
-//    @Binding var selectedToColorChangeElementID: UUID?
-//    @Binding var isDraggingElement: Bool
-//    @Binding var draggingElementID: UUID?
-//    @Binding var dragLocation: CGPoint
-//    @Binding var basePosition: CGPoint
-//    
-//    var body: some View {
-//        Group {
-//            switch element.type {
-//            case .text:
-//                // 自動適應編輯狀態與材質紋理狀態
-//                MaterializedTextView(element: $element, brushImageName: "marker")
-//                
-//            case .sticker:
-//                Image(element.content)
-//                    .resizable()
-//                    .scaledToFit()
-//                    .frame(width: 80, height: 80)
-//                    .foregroundStyle(element.color)
-//                
-//            case .photo:
-//                if let rawImage = element.rawImage {
-//                    Image(uiImage: FilterProcessor.shared.applyFilter(to: rawImage, filterType: element.filter))
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 200)
-//                        .padding(10)
-//                        .padding(.bottom, 20)
-//                        .background(Color.white)
-//                }
-//                
-//            case .doodle:
-//                ModernDoodleCanvas(
-//                    strokes: element.doodleStrokes,
-//                    brushColor: element.color,
-//                    brushSize: 8,
-//                    brushImageName: "marker"
-//                )
-//                .frame(width: element.doodleSize.width, height: element.doodleSize.height)
-//                .contentShape(Rectangle())
-//            }
-//        }
-//        // 將原本壓在 switch 上的手勢與修飾符，全部打包移到這裡單獨推導！
-//        .padding(40)
-//        .contentShape(Rectangle())
-//        .scaleEffect(element.type == .text ? 1.0 : element.scale)
-//        .rotationEffect(element.rotation)
-//        .position(element.position)
-//        .gesture(
-//            isDrawingMode ? nil :
-//            DragGesture()
-//                .onChanged { value in
-//                    if !isDraggingElement {
-//                        isDraggingElement = true
-//                        draggingElementID = element.id
-//                        basePosition = element.position
-//                        selectedElementID = element.id
-//                        
-//                        if element.isEditing {
-//                            element.isEditing = false
-//                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-//                        }
-//                    }
-//                    element.position = CGPoint(
-//                        x: basePosition.x + value.translation.width,
-//                        y: basePosition.y + value.translation.height
-//                    )
-//                    if element.type == .photo {
-//                        clampPhotoGeometry(for: &element)
-//                    }
-//                    dragLocation = value.location
-//                }
-//                .onEnded { _ in
-//                    if isPointInTrashZone(dragLocation) {
-//                        // 這裡會在外部透過綁定處理刪除，或在外部透過通知觸發
-//                    }
-//                    isDraggingElement = false
-//                    draggingElementID = nil
-//                }
-//        )
-//        .gesture(
-//            isDrawingMode ? nil :
-//            SimultaneousGesture(
-//                MagnificationGesture()
-//                    .onChanged { value in
-//                        element.scale = element.lastScale * value
-//                        if element.type == .photo { clampPhotoGeometry(for: &element) }
-//                    }
-//                    .onEnded { _ in element.lastScale = element.scale },
-//                RotationGesture()
-//                    .onChanged { value in
-//                        element.rotation = element.lastRotation + value
-//                        if element.type == .photo { clampPhotoGeometry(for: &element) }
-//                    }
-//                    .onEnded { _ in element.lastRotation = element.rotation }
-//            )
-//        )
-//        .onTapGesture {
-//            if element.type == .text {
-//                element.isEditing = true
-//            }
-//            selectedToColorChangeElementID = element.id
-//        }
-//    }
-//    
-//    // 把相片幾何計算也移進來，分擔主 View 的程式碼權重
-//    private func clampPhotoGeometry(for element: inout CanvasElement) {
-//        let baseSize = element.type == .photo ? (element.rawImage != nil ? CGSize(width: 250, height: 260) : CGSize(width: 220, height: 220)) : CGSize.zero
-//        let theta = element.rotation.radians
-//        let cosT = abs(cos(theta)); let sinT = abs(sin(theta))
-//        let baseExtX = (baseSize.width / 2) * cosT + (baseSize.height / 2) * sinT
-//        let baseExtY = (baseSize.width / 2) * sinT + (baseSize.height / 2) * cosT
-//        let maxAllowedScale = min((360.0 / 2) / baseExtX, (640.0 / 2) / baseExtY)
-//        if element.scale > maxAllowedScale { element.scale = maxAllowedScale }
-//        if element.scale < 0.3 { element.scale = 0.3 }
-//        let extX = baseExtX * element.scale
-//        let extY = baseExtY * element.scale
-//        element.position.x = min(max(element.position.x, extX), 360.0 - extX)
-//        element.position.y = min(max(element.position.y, extY), 640.0 - extY)
-//    }
-//    
-//    private func isPointInTrashZone(_ point: CGPoint) -> Bool {
-//        return point.x >= 140 && point.x <= 220 && point.y >= 560
-//    }
-//}
-
 
 
 struct ShareItem: Identifiable {
@@ -637,6 +413,8 @@ struct ShareItem: Identifiable {
 }
 
 import PhotosUI
+
+// MARK: MainCanvasView
 struct MainCanvasView: View {
     @State private var elements: [CanvasElement] = []
     @State private var selectedElementID: UUID? = nil
@@ -653,9 +431,6 @@ struct MainCanvasView: View {
     @State private var currentStroke: [StrokePoint] = []
     @State private var sessionStrokes: [[StrokePoint]] = []
     @State private var redoStrokesHistory: [[StrokePoint]] = []
-//    @State private var currentStroke: [CGPoint] = []          // 🟢 目前手指正拖動、尚未放開的單一筆跡
-//    @State private var sessionStrokes: [[CGPoint]] = []       // 🟢 這一輪塗鴉模式下，放開手指後累積的所有筆跡 (Undo 堆疊)
-//    @State private var redoStrokesHistory: [[CGPoint]] = [] // 🟢 存放被撤銷筆跡的歷史紀錄 (Redo 堆疊)
     @State private var selectedDoodleColor: Color = .black
     // 幾何優化常數
     private let minBrushStep: CGFloat = 1.5  // 效能優化：移動小於 1.5pt 則不重複繪製，壓制 Overdraw
@@ -806,6 +581,7 @@ struct MainCanvasView: View {
                 }
                 .padding(.horizontal)
                 
+                // MARK: text-isEditing
                 ForEach($elements) { $element in
                     let isSelected = selectedElementID == element.id
                     if element.type == .text, element.isEditing {
@@ -859,7 +635,7 @@ struct MainCanvasView: View {
             }
         }
     }
-    // 🟢 將畫布本體抽離成獨立函數，以便重複調用（正常顯示 vs 導出渲染）
+//  MARK: canvasBody 🟢 將畫布本體抽離成獨立函數，以便重複調用（正常顯示 vs 導出渲染）
     private func canvasBody(isExporting: Bool) -> some View {
         ZStack {
             Color.init(cgColor: .init(gray: 0.85, alpha: 1))
@@ -872,142 +648,330 @@ struct MainCanvasView: View {
             
             ForEach($elements) { $element in
                 let isSelected = !isExporting && selectedElementID == element.id
-               
-                Group {
-                    switch element.type {
-                    case .text:
-                        MaterializedTextView(element: $element, brushImageName: "marker")
-                    case .sticker:
-                        Image(element.content)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80, height: 80)
-                            .foregroundStyle(element.color)
-                    case .photo:
-                        if let rawImage = element.rawImage {
-                            Image(uiImage: FilterProcessor.shared.applyFilter(to: rawImage, filterType: element.filter))
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 200)
-                                .padding(10)
-                                .padding(.bottom, 20)
-                                .background(Color.white)
-                        }
-                    case .doodle:
-                        ModernDoodleCanvas(strokes: element.doodleStrokes, brushColor: element.color, brushSize: 8, brushImageName: "marker")
-//                        DoodleShape(strokes: element.doodleStrokes)
-//                            .stroke(
-//                                element.color,
-//                                style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
-//                            )
-                            .frame(width: element.doodleSize.width, height: element.doodleSize.height)
-                            .contentShape(Rectangle())
-                    }
-                }
-                //💡關鍵修改：在縮放與旋轉之前，擴展物件周圍的手勢感應範圍（不要全局，只要周圍）
-                .padding(40)
-                .contentShape(Rectangle()) // 讓透明的 padding 區域也能觸發手勢
-                .scaleEffect(element.type == .text ? 1.0 : element.scale)
-                .rotationEffect(element.rotation)
-                .position(element.position)
-                // 🟢 移除所有外框線與按鈕，改採 Instagram Stories 純手勢操作
-                .gesture(
-                    isDrawingMode ? nil :
-                    DragGesture()
-                        .onChanged { value in
-                            if !isDraggingElement {
-                                isDraggingElement = true
-                                draggingElementID = element.id
-                                basePosition = element.position
-                                selectedElementID = element.id
-                                
-                                if element.isEditing {
-                                    element.isEditing = false
-                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                }
-                            }
-                            
-                            // 更新位置
-                            element.position = CGPoint(
-                                x: basePosition.x + value.translation.width,
-                                y: basePosition.y + value.translation.height
+                let baseSize = elementBaseSize(for: element)
+                
+                // 💡 幾何依據：設定雙指在周圍的感應外擴寬度（例如各往外擴 60pt）
+                //let outerPadding: CGFloat = 60
+                
+                ZStack{
+                    Color.gray
+                        // 透過將外擴寬度逆向除以 scale，確保不論物件縮得再小，外圈物理大小在螢幕上永遠固定為 60pt
+                        .frame(
+                            width: ((element.type == .text ? 300 : baseSize.width) + 60 * 2) ,
+                            height: (baseSize.height + 60 * 2)
+                        )
+                        .scaleEffect(element.type == .text ? 1.0 : element.scale)
+                    
+                        .contentShape(Rectangle())
+                        // 💡 關鍵 3：利用平行手勢將雙指邏輯接在最外層，因為它在最外層，雙指放在 background 範圍內時能直接驅動
+                        .rotationEffect(element.rotation)
+                        .position(element.position)
+                        .simultaneousGesture(
+                            isDrawingMode ? nil :
+                            SimultaneousGesture(
+                                MagnificationGesture() ///放大手勢
+                                    .onChanged { value in
+                                        // 1. 計算如果沒有限制時，預期變更的預估縮放值
+                                        let newScale = element.lastScale * value
+                                        
+                                        // 2. 💡 有理有據的類型分流極限防線
+                                        if element.type == .text {
+                                            // 【文字專屬防線：限制最低字級大小】
+                                            let minAllowedFontSize: CGFloat = 12 // 💡 你希望文字最低不能小於 12pt 字級
+                                            let baseFontSize: CGFloat = 24       // 💡 對應 MaterializedTextView 內定義的 24
+                                            
+                                            // 數學逆推：最小比例 = 最小字級 / 基礎字級
+                                            let minScaleLimit = minAllowedFontSize / baseFontSize
+                                            
+                                            // 鎖定數值不低於極限（例如 0.5）
+                                            // max(A, B) 函數的功能是從兩個數值中取其大者
+                                            element.scale = max(minScaleLimit, newScale)
+                                            
+                                        } else {
+                                            // 【非文字物件（貼紙/照片）防線：限制最低實際物理寬度】
+                                            let minAllowedWidth: CGFloat = (element.type == .sticker) ? 40 : 60
+                                            let baseWidth = elementBaseSize(for: element).width
+                                            
+                                            // 數學逆推：最小比例 = 最小寬度 / 原始寬度
+                                            let minScaleLimit = minAllowedWidth / max(1, baseWidth)
+                                            
+                                            element.scale = max(minScaleLimit, newScale)
+                                        }
+                                        
+                                        // 🔴 限制二：縮放時若是相片，即時執行安全邊界截斷
+                                        if element.type == .photo {
+                                            clampPhotoGeometry(for: &element)
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        element.lastScale = element.scale
+                                    },
+                                RotationGesture()
+                                    .onChanged { value in
+                                        element.rotation = element.lastRotation + value
+                                        if element.type == .photo { clampPhotoGeometry(for: &element) }
+                                    }
+                                    .onEnded { _ in
+                                        element.lastRotation = element.rotation
+                                    }
                             )
-                            
-                            // 🔴 限制一：拖曳時若是相片，執行邊界與尺寸安全限幅限制，不可越界
-                            if element.type == .photo {
-                                clampPhotoGeometry(for: &element)
-                            }
-                            
-                            dragLocation = value.location
-                        }
-                        .onEnded { _ in
-                            if isPointInTrashZone(dragLocation) {
-                                elements.removeAll { $0.id == draggingElementID }
-                                selectedElementID = nil
-                            }
-                            isDraggingElement = false
-                            draggingElementID = nil
-                        }
-                )
-                .gesture(
-                    isDrawingMode ? nil :
-                    SimultaneousGesture(
-                        MagnificationGesture()
-                            .onChanged { value in
-                                element.scale = element.lastScale * value
-                                
-                                // 🔴 限制二：縮放時若是相片，即時執行安全邊界截斷
-                                if element.type == .photo {
-                                    clampPhotoGeometry(for: &element)
+                        )
+                       
+                            ///--------------
+                            Group {
+                                switch element.type {
+                                case .text:
+                                    MaterializedTextView(element: $element, brushImageName: "marker")
+                                case .sticker:
+                                    Image(element.content)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 80, height: 80)
+                                        .foregroundStyle(element.color)
+                                        .contentShape(Rectangle())
+                                case .photo:
+                                    if let rawImage = element.rawImage {
+                                        Image(uiImage: FilterProcessor.shared.applyFilter(to: rawImage, filterType: element.filter))
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 200)
+                                            .padding(10)
+                                            .padding(.bottom, 20)
+                                            .background(Color.white)
+                                        }
+                                case .doodle:
+                                    ModernDoodleCanvas(strokes: element.doodleStrokes, brushColor: element.color, brushSize: 8, brushImageName: "marker")
+                                        .frame(width: element.doodleSize.width, height: element.doodleSize.height)
+                                        .contentShape(Rectangle())
                                 }
                             }
-                            .onEnded { _ in
-                                element.lastScale = element.scale
-                            },
-                        RotationGesture()
-                            .onChanged { value in
-                                element.rotation = element.lastRotation + value
-                                
-                                // 🔴 限制三：旋轉時若是相片，即時重新計算外包圍框並卡死邊界
-                                if element.type == .photo {
-                                    clampPhotoGeometry(for: &element)
+                            .scaleEffect(element.type == .text ? 1.0 : element.scale)
+                            .rotationEffect(element.rotation)
+                            .position(element.position)
+                            // 💡 關鍵 1：單指拖曳直接綁在實體元件上。因為周圍沒有實體外擴，單指點外面絕對觸發不到拖曳（100%防誤觸）
+                            .gesture(
+                                isDrawingMode ? nil :
+                                DragGesture()
+                                    .onChanged { value in
+                                        if !isDraggingElement {
+                                            isDraggingElement = true
+                                            draggingElementID = element.id
+                                            basePosition = element.position
+                                            selectedElementID = element.id
+            
+                                            if element.isEditing {
+                                                element.isEditing = false
+                                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                            }
+                                        }
+            
+                                        // 更新位置
+                                        element.position = CGPoint(
+                                            x: basePosition.x + value.translation.width,
+                                            y: basePosition.y + value.translation.height
+                                        )
+            
+                                        // 🔴 限制一：拖曳時若是相片，執行邊界與尺寸安全限幅限制，不可越界
+                                        if element.type == .photo {
+                                            clampPhotoGeometry(for: &element)
+                                        }
+            
+                                        dragLocation = value.location
+                                    }
+                                    .onEnded { _ in
+                                        if isPointInTrashZone(dragLocation) {
+                                            elements.removeAll { $0.id == draggingElementID }
+                                            selectedElementID = nil
+                                        }
+                                        isDraggingElement = false
+                                        draggingElementID = nil
+                                    }
+                            )
+                            .gesture(
+                                isDrawingMode ? nil :
+                                SimultaneousGesture( ///同步手勢
+                                    MagnificationGesture() ///放大手勢
+                                        .onChanged { value in
+                                            // 1. 計算如果沒有限制時，預期變更的預估縮放值
+                                            let newScale = element.lastScale * value
+                                            
+                                            // 2. 💡 有理有據的類型分流極限防線
+                                            if element.type == .text {
+                                                // 【文字專屬防線：限制最低字級大小】
+                                                let minAllowedFontSize: CGFloat = 12 // 💡 你希望文字最低不能小於 12pt 字級
+                                                let baseFontSize: CGFloat = 24       // 💡 對應 MaterializedTextView 內定義的 24
+                                                
+                                                // 數學逆推：最小比例 = 最小字級 / 基礎字級
+                                                let minScaleLimit = minAllowedFontSize / baseFontSize
+                                                
+                                                // 鎖定數值不低於極限（例如 0.5）
+                                                // max(A, B) 函數的功能是從兩個數值中取其大者
+                                                element.scale = max(minScaleLimit, newScale)
+                                                
+                                            } else {
+                                                // 【非文字物件（貼紙/照片）防線：限制最低實際物理寬度】
+                                                let minAllowedWidth: CGFloat = (element.type == .sticker) ? 40 : 60
+                                                let baseWidth = elementBaseSize(for: element).width
+                                                
+                                                // 數學逆推：最小比例 = 最小寬度 / 原始寬度
+                                                let minScaleLimit = minAllowedWidth / max(1, baseWidth)
+                                                
+                                                element.scale = max(minScaleLimit, newScale)
+                                            }
+                                            
+                                            // 🔴 限制二：縮放時若是相片，即時執行安全邊界截斷
+                                            if element.type == .photo {
+                                                clampPhotoGeometry(for: &element)
+                                            }
+                                        }
+                                        .onEnded { _ in
+                                            element.lastScale = element.scale
+                                        },
+                                    RotationGesture()
+                                        .onChanged { value in
+                                            element.rotation = element.lastRotation + value
+            
+                                            // 🔴 限制三：旋轉時若是相片，即時重新計算外包圍框並卡死邊界
+                                            if element.type == .photo {
+                                                clampPhotoGeometry(for: &element)
+                                            }
+                                        }
+                                        .onEnded { _ in
+                                            element.lastRotation = element.rotation
+                                        }
+                                )
+                            )
+                            .onTapGesture(count: 1) {
+                                selectedToColorChangeElementID = element.id
+                                if element.type == .text {
+                                    element.isEditing = true
                                 }
                             }
-                            .onEnded { _ in
-                                element.lastRotation = element.rotation
-                            }
-                    )
-                )
-                .onTapGesture(count: 1) {
-                    if element.type == .text {
-                        element.isEditing = true
-                        //selectedElementID = element.id
-                    }
-                    selectedToColorChangeElementID = element.id
-                }
+                            
+                        }
+                    
+                    
+                    
+                
+                // 💡 關鍵變形順序：在綁定手勢前先決定元件在畫布的位置與基本旋轉縮放
+                
+                
+                
+                    
             }
-            // 🟢 超簡潔的渲染迴圈，編譯器再也不會崩潰！
+            
+
 //            ForEach($elements) { $element in
-//                CanvasItemWrapper(
-//                    element: $element,
-//                    isExporting: isExporting,
-//                    isDrawingMode: isDrawingMode,
-//                    selectedElementID: $selectedElementID,
-//                    selectedToColorChangeElementID: $selectedToColorChangeElementID,
-//                    isDraggingElement: $isDraggingElement,
-//                    draggingElementID: $draggingElementID,
-//                    dragLocation: $dragLocation,
-//                    basePosition: $basePosition
-//                )
-//                .onChange(of: isDraggingElement) { _, newValue in
-//                    // 當手勢在 Wrapper 內部放開，且確認在垃圾桶內時，由主畫布移除
-//                    if !newValue && isPointInTrashZone(dragLocation) && draggingElementID == element.id {
-//                        elements.removeAll { $0.id == element.id }
-//                        selectedElementID = nil
+//                let isSelected = !isExporting && selectedElementID == element.id
+//               
+//                Group {
+//                    switch element.type {
+//                    case .text:
+//                        MaterializedTextView(element: $element, brushImageName: "marker")
+//                    case .sticker:
+//                        Image(element.content)
+//                            .resizable()
+//                            .scaledToFit()
+//                            .frame(width: 80, height: 80)
+//                            .foregroundStyle(element.color)
+//                    case .photo:
+//                        if let rawImage = element.rawImage {
+//                            Image(uiImage: FilterProcessor.shared.applyFilter(to: rawImage, filterType: element.filter))
+//                                .resizable()
+//                                .scaledToFit()
+//                                .frame(width: 200)
+//                                .padding(10)
+//                                .padding(.bottom, 20)
+//                                .background(Color.white)
+//                        }
+//                    case .doodle:
+//                        ModernDoodleCanvas(strokes: element.doodleStrokes, brushColor: element.color, brushSize: 8, brushImageName: "marker")
+//                            .frame(width: element.doodleSize.width, height: element.doodleSize.height)
+//                            .contentShape(Rectangle())
 //                    }
 //                }
+//                
+//                .scaleEffect(element.type == .text ? 1.0 : element.scale)
+//                .rotationEffect(element.rotation)
+//                .position(element.position)
+//                // 🟢 移除所有外框線與按鈕，改採 Instagram Stories 純手勢操作
+//                .gesture(
+//                    isDrawingMode ? nil :
+//                    DragGesture()
+//                        .onChanged { value in
+//                            if !isDraggingElement {
+//                                isDraggingElement = true
+//                                draggingElementID = element.id
+//                                basePosition = element.position
+//                                selectedElementID = element.id
+//                                
+//                                if element.isEditing {
+//                                    element.isEditing = false
+//                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+//                                }
+//                            }
+//                            
+//                            // 更新位置
+//                            element.position = CGPoint(
+//                                x: basePosition.x + value.translation.width,
+//                                y: basePosition.y + value.translation.height
+//                            )
+//                            
+//                            // 🔴 限制一：拖曳時若是相片，執行邊界與尺寸安全限幅限制，不可越界
+//                            if element.type == .photo {
+//                                clampPhotoGeometry(for: &element)
+//                            }
+//                            
+//                            dragLocation = value.location
+//                        }
+//                        .onEnded { _ in
+//                            if isPointInTrashZone(dragLocation) {
+//                                elements.removeAll { $0.id == draggingElementID }
+//                                selectedElementID = nil
+//                            }
+//                            isDraggingElement = false
+//                            draggingElementID = nil
+//                        }
+//                )
+//                .gesture(
+//                    isDrawingMode ? nil :
+//                    SimultaneousGesture( ///同步手勢
+//                        MagnificationGesture() ///放大手勢
+//                            .onChanged { value in
+//                                element.scale = element.lastScale * value
+//                                
+//                                // 🔴 限制二：縮放時若是相片，即時執行安全邊界截斷
+//                                if element.type == .photo {
+//                                    clampPhotoGeometry(for: &element)
+//                                }
+//                            }
+//                            .onEnded { _ in
+//                                element.lastScale = element.scale
+//                            },
+//                        RotationGesture()
+//                            .onChanged { value in
+//                                element.rotation = element.lastRotation + value
+//                                
+//                                // 🔴 限制三：旋轉時若是相片，即時重新計算外包圍框並卡死邊界
+//                                if element.type == .photo {
+//                                    clampPhotoGeometry(for: &element)
+//                                }
+//                            }
+//                            .onEnded { _ in
+//                                element.lastRotation = element.rotation
+//                            }
+//                    )
+//                )
+//                .onTapGesture(count: 1) {
+//                    if element.type == .text {
+//                        element.isEditing = true
+//                        //selectedElementID = element.id
+//                    }
+//                    selectedToColorChangeElementID = element.id
+//                }
 //            }
-            // 塗鴉手勢攔截層
+
+            // MARK: 塗鴉手勢攔截層
             // 塗鴉手勢與畫布渲染整合 (置於 canvasBody 內部的 ZStack 頂層)
             if isDrawingMode {
                 Color.clear
@@ -1045,13 +1009,6 @@ struct MainCanvasView: View {
                             }
                     )
                 
-                // 即時繪製畫布
-//                ModernDoodleCanvas(
-//                    strokes: sessionStrokes + [currentStroke],
-//                    brushColor: selectedDoodleColor,
-//                    brushSize: 8,
-//                    brushImageName: "marker" // 請確認 Assets 中的圖片名稱
-//                )
                 // 🟢 核心優化：畫的時候使用原生 Path 幾何進行硬體加速描邊，保證 100% 絕對流暢跟手、不掉幀
                 Canvas { context, size in
                     for stroke in (sessionStrokes + [currentStroke]) {
@@ -1092,93 +1049,14 @@ struct MainCanvasView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity) // 🟢 確保寬高不為 0
                 .allowsHitTesting(false) // 🟢 讓 Canvas 不攔截手勢，確保觸控能穿透給下方的 DragGesture
             }
-//            if isDrawingMode {
-//                Color.clear
-//                    .contentShape(Rectangle())
-//                    .gesture(
-//                        DragGesture(minimumDistance: 0)
-//                            .onChanged { value in
-//                                let newLocation = value.location
-//                                
-//                                guard let lastPoint = currentStroke.last else {
-//                                    let firstPoint = StrokePoint(location: newLocation, angle: .zero)
-//                                    currentStroke.append(firstPoint)
-//                                    return
-//                                }
-//                                
-//                                let dx = newLocation.x - lastPoint.location.x
-//                                let dy = newLocation.y - lastPoint.location.y
-//                                let distance = sqrt(dx*dx + dy*dy)
-//                                
-//                                // 1. 步長控制：防止點過密導致 GPU 效能下降
-//                                if distance < minBrushStep { return }
-//                                
-//                                let currentAngle = Angle(radians: atan2(dy, dx))
-//                                
-//                                // 2. 線性插值：快速劃過時自動均勻補點
-//                                if distance > maxBrushStep {
-//                                    let steps = Int(distance / minBrushStep)
-//                                    for i in 1...steps {
-//                                        let t = CGFloat(i) / CGFloat(steps)
-//                                        let interpolatedLocation = CGPoint(
-//                                            x: lastPoint.location.x + dx * t,
-//                                            y: lastPoint.location.y + dy * t
-//                                        )
-//                                        let interpolatedAngle = lastPoint.angle + Angle(radians: (currentAngle.radians - lastPoint.angle.radians) * t)
-//                                        currentStroke.append(StrokePoint(location: interpolatedLocation, angle: interpolatedAngle))
-//                                    }
-//                                } else {
-//                                    currentStroke.append(StrokePoint(location: newLocation, angle: currentAngle))
-//                                }
-//                            }
-//                            .onEnded { _ in
-//                                if !currentStroke.isEmpty {
-//                                    sessionStrokes.append(currentStroke)
-//                                    currentStroke.removeAll()
-//                                    redoStrokesHistory.removeAll()
-//                                }
-//                            }
-//                    )
-//                
-//                // 即時繪製當前塗鴉（使用優化後的 Canvas）
-//                ModernDoodleCanvas(
-//                    strokes: sessionStrokes + [currentStroke],
-//                    brushColor: selectedDoodleColor,
-//                    brushSize: 8, // 3.5mm 平頭粗線建議設為 12，1.2mm 單線體設為 5
-//                    brushImageName: "marker"
-//                )
-//                .frame(maxWidth: .infinity, maxHeight: .infinity) // 🟢 確保寬高不為 0
-//                .allowsHitTesting(false) // 🟢 讓 Canvas 不攔截手勢，確保觸控能穿透給下方的 DragGesture
-//            }
-//            if isDrawingMode {
-//                Color.clear
-//                    .contentShape(Rectangle())
-//                    .gesture(
-//                        DragGesture(minimumDistance: 0)
-//                            .onChanged { value in
-//                                currentStroke.append(value.location)
-//                            }
-//                            .onEnded { _ in
-//                                if !currentStroke.isEmpty {
-//                                    sessionStrokes.append(currentStroke)
-//                                    currentStroke.removeAll()
-//                                    redoStrokesHistory.removeAll()
-//                                }
-//                            }
-//                    )
-//                
-//                DoodleShape(strokes: sessionStrokes + [currentStroke])
-//                    .stroke(
-//                        selectedDoodleColor,
-//                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
-//                    )
-//            }
+            
         }
         .frame(width: 360, height: 640)
         .clipped()
     }
     
-    // MARK: - 相片幾何限幅運算核心
+    
+ // MARK: - clampPhotoGeometry 相片幾何限幅運算核心
 
     private func clampPhotoGeometry(for element: inout CanvasElement) {
         guard element.type == .photo else { return }
@@ -1223,7 +1101,7 @@ struct MainCanvasView: View {
     
    
     
-    // MARK: - 刪除區域判斷
+ // MARK: - isPointInTrashZone 刪除區域判斷
     private func isPointInTrashZone(_ point: CGPoint) -> Bool {
         // 1. 定義垃圾桶判定區塊的寬高尺寸
         let trashWidth: CGFloat = 80
@@ -1245,52 +1123,8 @@ struct MainCanvasView: View {
     }
 
     
-    // 幾何座標轉換函數：將全螢幕軌跡打包為獨立邊界的元件
-//    private func convertSessionToDoodleElement() {
-//        // 若整個會話期都沒有畫任何筆跡，則不生成物件
-//        guard !sessionStrokes.isEmpty else { return }
-//        
-//        // 1. 攤平所有筆跡中的所有點，用以計算整體的邊界極值
-//        let allPoints = sessionStrokes.flatMap { $0 }
-//        let xs = allPoints.map { $0.x }
-//        let ys = allPoints.map { $0.y }
-//        
-//        guard let minX = xs.min(), let maxX = xs.max(),
-//              let minY = ys.min(), let maxY = ys.max() else { return }
-//        
-//        // 2. 計算此多筆跡複合元件的實際 Frame 寬高
-//        let width = max(20, maxX - minX)
-//        let height = max(20, maxY - minY)
-//        
-//        // 3. 計算此複合型 Frame 的幾何中心點位置
-//        let centerPoint = CGPoint(x: minX + width / 2, y: minY + height / 2)
-//        
-//        // 4. 坐標歸一化：遍歷所有筆跡，將其內部的絕對坐標點全部減去左上角極值 (minX, minY)
-//        // 轉換為相對於該組件內部 Frame 的相對區域坐標
-//        let normalizedStrokes = sessionStrokes.map { stroke in
-//            stroke.map { pt in
-//                CGPoint(x: pt.x - minX, y: pt.y - minY)
-//            }
-//        }
-//        
-//        // 5. 建立單一的 CanvasElement 元件並存入陣列
-//        let newDoodle = CanvasElement(
-//            type: .doodle,
-//            content: "",
-//            position: centerPoint,
-//            color: selectedDoodleColor,
-//            doodleStrokes: normalizedStrokes,
-//            doodleSize: CGSize(width: width, height: height)
-//        )
-//        
-//        elements.append(newDoodle)
-//        selectedElementID = newDoodle.id
-//        
-//        // 6. 清空此輪塗鴉會話期的暫存資料與重做歷史
-//        sessionStrokes.removeAll()
-//        redoStrokesHistory.removeAll()
-//    }
-    // 🔴 修改：傳入目前你畫布使用的筆刷大小（例如 5 或 12）
+
+ // MARK: convertSessionToDoodleElement 🔴 修改：傳入目前你畫布使用的筆刷大小（例如 5 或 12）
     private func convertSessionToDoodleElement() {
         guard !sessionStrokes.isEmpty else { return }
         
@@ -1302,7 +1136,7 @@ struct MainCanvasView: View {
               let minY = ys.min(), let maxY = ys.max() else { return }
         
         // 幾何修正：加入筆刷粗細的半徑作為安全襯墊 (Padding)
-        let brushRadius: CGFloat = 8.0 / 2.0 // 假設筆刷大小為 12
+        let brushRadius: CGFloat = 8.0 / 2.0 // 假設筆刷大小為 8
         let paddedMinX = minX - brushRadius
         let paddedMaxX = maxX + brushRadius
         let paddedMinY = minY - brushRadius
@@ -1344,35 +1178,35 @@ struct MainCanvasView: View {
     
     
     
-    // 下方動態控制面板
+ // MARK: - bottomInspectorPanel 下方動態控制面板
+    
     @ViewBuilder
     private var bottomInspectorPanel: some View {
         if isDrawingMode {
             // 塗鴉模式下：顯示顏色選擇器
-            // 🟢 區塊 A：當處於塗鴉狀態時，在最上方獨立顯示「回上一動作」與「下一動作」控制列
-            //if isDrawingMode {
-                HStack(spacing: 20) {
-                    Button(action: {
-                        if let last = sessionStrokes.popLast() {
-                            redoStrokesHistory.append(last)
-                        }
-                    }) {
-                        Label("回上一動作", systemImage: "arrow.uturn.backward")
+            // 區塊 A：當處於塗鴉狀態時，在最上方獨立顯示「回上一動作」與「下一動作」控制列
+            HStack(spacing: 20) {
+                Button(action: {
+                    if let last = sessionStrokes.popLast() {
+                        redoStrokesHistory.append(last)
                     }
-                    .disabled(sessionStrokes.isEmpty)
-                    
-                    Button(action: {
-                        if let next = redoStrokesHistory.popLast() {
-                            sessionStrokes.append(next)
-                        }
-                    }) {
-                        Label("下一動作", systemImage: "arrow.uturn.forward")
-                    }
-                    .disabled(redoStrokesHistory.isEmpty)
+                }) {
+                    Label("回上一動作", systemImage: "arrow.uturn.backward")
                 }
-                .font(.subheadline)
-                .padding(.top, 4)
-          //  }
+                .disabled(sessionStrokes.isEmpty)
+                
+                Button(action: {
+                    if let next = redoStrokesHistory.popLast() {
+                        sessionStrokes.append(next)
+                    }
+                }) {
+                    Label("下一動作", systemImage: "arrow.uturn.forward")
+                }
+                .disabled(redoStrokesHistory.isEmpty)
+            }
+            .font(.subheadline)
+            .padding(.top, 4)
+    
             
             
             
@@ -1468,7 +1302,7 @@ struct MainCanvasView: View {
 
 
 
-    // 🟢 核心功能：視圖點陣化渲染函數
+// MARK: renderAndShareCanvas 🟢 核心功能：視圖點陣化渲染函數
     @MainActor
     private func renderAndShareCanvas() {
         // 1. 建立一個完全乾淨、不帶任何 UI 控制控制項的虛擬畫布
@@ -1486,7 +1320,6 @@ struct MainCanvasView: View {
             // 🟢 修正：直接給 shareItem 賦值，SwiftUI 會保證資料寫入完成後才初始化 Sheet 視圖
             self.shareItem = ShareItem(image: uiImage)
         }
-        
         
     }
 }
