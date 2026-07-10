@@ -28,6 +28,16 @@ enum FilterType: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+// 擴充塗鴉點，使其包含旋轉切線角度
+struct StrokePoint: Identifiable {
+    let id = UUID()
+    var location: CGPoint
+    var angle: Angle
+}
+
+
+
+
 struct CanvasElement: Identifiable {
     var id = UUID()
     var type: ElementType
@@ -45,7 +55,7 @@ struct CanvasElement: Identifiable {
     var filter: FilterType = .none
     
     // 塗鴉屬性
-    var doodleStrokes: [[CGPoint]] = []
+    var doodleStrokes: [[StrokePoint]] = []
     var doodleSize: CGSize = .zero
     
     // 用於手勢的臨時狀態
@@ -96,54 +106,232 @@ class FilterProcessor {
 }
 
 
-// 用於平滑渲染相對座標點的自訂幾何形狀
-struct DoodleShape: Shape {
-    var strokes: [[CGPoint]]
+
+struct ModernDoodleCanvas: View {
+    var strokes: [[StrokePoint]]
+    var brushColor: Color
+    var brushSize: CGFloat
+    let brushImageName: String // 傳入 "mark"
     
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        
-        for stroke in strokes {
-            guard stroke.count > 0 else { continue }
+    var body: some View {
+        Canvas { context, size in
+            // 1. 正確解析點陣圖（回傳的是非 Optional 的 ResolvedImage）
+            let resolvedImage = context.resolve(Image(brushImageName))
             
-            // 如果只有一個點，畫一個小點
-            if stroke.count == 1 {
-                path.move(to: stroke[0])
-                path.addEllipse(in: CGRect(x: stroke[0].x - 2, y: stroke[0].y - 2, width: 4, height: 4))
-                continue
-            }
-            
-            path.move(to: stroke[0])
-            
-            // 如果只有兩個點，直接連直線
-            if stroke.count == 2 {
-                path.addLine(to: stroke[1])
-                continue
-            }
-            
-            // 三個點以上，使用貝茲曲線進行平滑幾何轉換
-            for i in 1..<stroke.count - 1 {
-                let currentPoint = stroke[i]
-                let nextPoint = stroke[i + 1]
+            for stroke in strokes {
+                guard stroke.count > 0 else { continue }
                 
-                // 計算當前點與下一個點的中點，作為幾何路徑 ancher 的終點
-                let midPoint = CGPoint(
-                    x: (currentPoint.x + nextPoint.x) / 2,
-                    y: (currentPoint.y + nextPoint.y) / 2
-                )
+                // 狀況 A：如果只有一個點，直接原地繪製一個圓點
+                if stroke.count == 1 {
+                    drawSingleBrush(context: context, image: resolvedImage, at: stroke[0].location, angle: stroke[0].angle)
+                    continue
+                }
                 
-                // 以當前點為控制點（Control Point），向中點繪製曲線
-                path.addQuadCurve(to: midPoint, control: currentPoint)
-            }
-            
-            // 連接最後一個點
-            if let lastPoint = stroke.last {
-                path.addLine(to: lastPoint)
+                // 狀況 B：如果只有兩個點，直接在兩點間進行高密度線性插值
+                if stroke.count == 2 {
+                    interpolateLine(context: context, image: resolvedImage, from: stroke[0], to: stroke[1])
+                    continue
+                }
+                
+                // 狀況 C：三個點以上，100% 採用你原本 DoodleShape 的「中點二次貝茲曲線」幾何軌跡
+                var currentStart = stroke[0].location
+                
+                for i in 1..<stroke.count - 1 {
+                    let currentPoint = stroke[i].location
+                    let nextPoint = stroke[i + 1].location
+                    
+                    // 計算中點，這正是原本 DoodleShape 貝茲曲線的真實路徑終點
+                    let midPoint = CGPoint(
+                        x: (currentPoint.x + nextPoint.x) / 2,
+                        y: (currentPoint.y + nextPoint.y) / 2
+                    )
+                    
+                    // 在這段二次貝茲曲線軌跡上，依據公式計算高密度插值點，消除一切折角與不平滑
+                    interpolateQuadCurve(
+                        context: context,
+                        image: resolvedImage,
+                        p0: currentStart,
+                        p1: currentPoint,
+                        p2: midPoint,
+                        startAngle: stroke[i - 1].angle,
+                        endAngle: stroke[i].angle
+                    )
+                    
+                    // 下一段曲線的起點，是前一段的中點
+                    currentStart = midPoint
+                }
+                
+                // 補足最後一段到終點的筆跡
+                if stroke.count >= 3 {
+                    let secondLast = stroke[stroke.count - 2]
+                    let last = stroke[stroke.count - 1]
+                    interpolateLine(context: context, image: resolvedImage, from: secondLast, to: last)
+                }
             }
         }
-        return path
+    }
+    
+    // 🟢 貝茲曲線高密度壓印核心：利用數學公式 P(t) 算出完全平滑的曲線坐標
+    private func interpolateQuadCurve(context: GraphicsContext, image: GraphicsContext.ResolvedImage, p0: CGPoint, p1: CGPoint, p2: CGPoint, startAngle: Angle, endAngle: Angle) {
+        let dx1 = p1.x - p0.x
+        let dy1 = p1.y - p0.y
+        let dx2 = p2.x - p1.x
+        let dy2 = p2.y - p1.y
+        let approxLength = sqrt(dx1*dx1 + dy1*dy1) + sqrt(dx2*dx2 + dy2*dy2)
+        
+        // 步長定為 0.5 點，讓筆刷貼圖產生大量重疊，邊緣才會完全消除鋸齒、呈現奇異筆飽滿墨水感
+        let stepSize: CGFloat = 0.5
+        let steps = max(2, Int(approxLength / stepSize))
+        
+        for step in 0...steps {
+            let t = CGFloat(step) / CGFloat(steps)
+            
+            // 二次貝茲幾何公式
+            let x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x
+            let y = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y
+            let curveLocation = CGPoint(x: x, y: y)
+            
+            // 角度同步線性過渡
+            let curveAngle = Angle(radians: startAngle.radians + (endAngle.radians - startAngle.radians) * t)
+            
+            drawSingleBrush(context: context, image: image, at: curveLocation, angle: curveAngle)
+        }
+    }
+    
+    // 兩點間的線性高密度壓印
+    private func interpolateLine(context: GraphicsContext, image: GraphicsContext.ResolvedImage, from p0: StrokePoint, to p1: StrokePoint) {
+        let dx = p1.location.x - p0.location.x
+        let dy = p1.location.y - p0.location.y
+        let dist = sqrt(dx * dx + dy * dy)
+        
+        let stepSize: CGFloat = 0.5
+        let steps = max(1, Int(dist / stepSize))
+        
+        for step in 0...steps {
+            let t = CGFloat(step) / CGFloat(steps)
+            let loc = CGPoint(
+                x: p0.location.x + dx * t,
+                y: p0.location.y + dy * t
+            )
+            let ang = Angle(radians: p0.angle.radians + (p1.angle.radians - p0.angle.radians) * t)
+            drawSingleBrush(context: context, image: image, at: loc, angle: ang)
+        }
+    }
+    
+    // 🟢 完美著色與硬體加速渲染核心：利用獨佔圖層做 SourceAtop 遮罩，不與背景牆紙衝突
+    private func drawSingleBrush(context: GraphicsContext, image: GraphicsContext.ResolvedImage, at location: CGPoint, angle: Angle) {
+        context.drawLayer { layerContext in
+            // 將座標系移至中心點並依據筆刷方向旋轉
+            layerContext.translateBy(x: location.x, y: location.y)
+            layerContext.rotate(by: angle)
+            
+            let rect = CGRect(
+                x: -brushSize / 2,
+                y: -brushSize / 2,
+                width: brushSize,
+                height: brushSize
+            )
+            
+            // 1. 繪製出筆刷原始的不透明 Alpha 形狀
+            layerContext.draw(image, in: rect)
+            
+            // 2. 將混合模式切換為來源置上，此時著色隻會精準注入在有原圖像素的地方（完美換色）
+            layerContext.blendMode = .sourceAtop
+            layerContext.fill(Path(rect), with: .color(brushColor))
+        }
     }
 }
+
+
+
+//struct ModernDoodleCanvas: View {
+//    var strokes: [[StrokePoint]]
+//    var brushColor: Color
+//    var brushSize: CGFloat       // 1.2mm 單線體建議設為 4~6，3.5mm 設為 12~16
+//    let brushImageName: String   // Assets 裡的圖片名稱 (如 "mark")
+//
+//    var body: some View {
+//        Canvas { context, size in
+//            let resolvedImage = context.resolve(Image(brushImageName))
+//            
+//            for stroke in strokes {
+//                for point in stroke {
+//                    // 針對每個點建立獨立的圖層，用來做正確的顏色遮罩混合
+//                    context.drawLayer { layerContext in
+//                        
+//                        // 1. 幾何平移與旋轉
+//                        layerContext.translateBy(x: point.location.x, y: point.location.y)
+//                        layerContext.rotate(by: point.angle)
+//                        
+//                        let rect = CGRect(
+//                            x: -brushSize / 2,
+//                            y: -brushSize / 2,
+//                            width: brushSize,
+//                            height: brushSize
+//                        )
+//                        
+//                        // 2. 先繪製原始筆刷形狀
+//                        layerContext.draw(resolvedImage, in: rect)
+//                        
+//                        // 3. 🟢 核心修正：使用 SourceAtop 混合模式，將顏色強制覆蓋在有像素的 Alpha 區域上
+//                        layerContext.blendMode = .sourceAtop
+//                        layerContext.fill(Path(rect), with: .color(brushColor))
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
+
+// 用於平滑渲染相對座標點的自訂幾何形狀
+//struct DoodleShape: Shape {
+//    var strokes: [[CGPoint]]
+//    
+//    func path(in rect: CGRect) -> Path {
+//        var path = Path()
+//        
+//        for stroke in strokes {
+//            guard stroke.count > 0 else { continue }
+//            
+//            // 如果只有一個點，畫一個小點
+//            if stroke.count == 1 {
+//                path.move(to: stroke[0])
+//                path.addEllipse(in: CGRect(x: stroke[0].x - 2, y: stroke[0].y - 2, width: 4, height: 4))
+//                continue
+//            }
+//            
+//            path.move(to: stroke[0])
+//            
+//            // 如果只有兩個點，直接連直線
+//            if stroke.count == 2 {
+//                path.addLine(to: stroke[1])
+//                continue
+//            }
+//            
+//            // 三個點以上，使用貝茲曲線進行平滑幾何轉換
+//            for i in 1..<stroke.count - 1 {
+//                let currentPoint = stroke[i]
+//                let nextPoint = stroke[i + 1]
+//                
+//                // 計算當前點與下一個點的中點，作為幾何路徑 ancher 的終點
+//                let midPoint = CGPoint(
+//                    x: (currentPoint.x + nextPoint.x) / 2,
+//                    y: (currentPoint.y + nextPoint.y) / 2
+//                )
+//                
+//                // 以當前點為控制點（Control Point），向中點繪製曲線
+//                path.addQuadCurve(to: midPoint, control: currentPoint)
+//            }
+//            
+//            // 連接最後一個點
+//            if let lastPoint = stroke.last {
+//                path.addLine(to: lastPoint)
+//            }
+//        }
+//        return path
+//    }
+//}
 
 
 //----------------
@@ -257,23 +445,191 @@ struct CanvasTextView: View {
                             }
                         }
                     }
-            }else {
-                // 🔥 顯示狀態：使用純 Text，手勢不會被攔截，可自由移動
-                Text(element.content.isEmpty ? "請輸入文字" : element.content)
-                    .font(.custom(element.fontName, size: baseFontSize * element.scale))
-                    .foregroundColor(element.color)
-                    .lineLimit(nil)
-                    .frame(maxWidth: 300, alignment: element.istextAlignCenter ? .center : .leading) // 保持與編輯狀態相同的固定寬度
-                    .multilineTextAlignment(element.istextAlignCenter ? .center : .leading)
-                    .fixedSize(horizontal: true, vertical: true)
             }
+//            else {
+//                // 🔥 顯示狀態：使用純 Text，手勢不會被攔截，可自由移動
+//                Text(element.content.isEmpty ? "請輸入文字" : element.content)
+//                    .font(.custom(element.fontName, size: baseFontSize * element.scale))
+//                    .foregroundColor(element.color)
+//                    .lineLimit(nil)
+//                    .frame(maxWidth: 300, alignment: element.istextAlignCenter ? .center : .leading) // 保持與編輯狀態相同的固定寬度
+//                    .multilineTextAlignment(element.istextAlignCenter ? .center : .leading)
+//                    .fixedSize(horizontal: true, vertical: true)
+//            }
         }
        
     }
 }
+struct MaterializedTextView: View {
+    @Binding var element: CanvasElement
+    let brushImageName: String
+    private let baseFontSize: CGFloat = 24
 
+    var body: some View {
+        ZStack {
+            if !element.isEditing {
+                Text(element.content.isEmpty ? "請輸入文字" : element.content)
+                    .font(.custom(element.fontName, size: baseFontSize * element.scale))
+                    .foregroundColor(.white)
+                    .lineLimit(nil)
+                    .frame(width: 300, alignment: element.istextAlignCenter ? .center : .leading)
+                    .multilineTextAlignment(element.istextAlignCenter ? .center : .leading)
+                    .fixedSize(horizontal: true, vertical: true)
+                    // 利用平鋪背景與文字遮罩，將奇異筆顆粒刻進字體
+                    .background(
+                        Image(brushImageName)
+                            .resizable(resizingMode: .tile)
+                    )
+                    .mask(
+                        Text(element.content.isEmpty ? "請輸入文字" : element.content)
+                            .font(.custom(element.fontName, size: baseFontSize * element.scale))
+                            .lineLimit(nil)
+                            .frame(width: 300, alignment: element.istextAlignCenter ? .center : .leading)
+                            .multilineTextAlignment(element.istextAlignCenter ? .center : .leading)
+                            .fixedSize(horizontal: true, vertical: true)
+                    )
+                    .colorMultiply(element.color)
+                    // 強制提升至 GPU 渲染快取層，防止大型物件拖曳卡頓
+                    .drawingGroup()
+            }
+        }
+    }
+}
 
 //---------------------------
+
+//struct CanvasItemWrapper: View {
+//    @Binding var element: CanvasElement
+//    let isExporting: Bool
+//    let isDrawingMode: Bool
+//    @Binding var selectedElementID: UUID?
+//    @Binding var selectedToColorChangeElementID: UUID?
+//    @Binding var isDraggingElement: Bool
+//    @Binding var draggingElementID: UUID?
+//    @Binding var dragLocation: CGPoint
+//    @Binding var basePosition: CGPoint
+//    
+//    var body: some View {
+//        Group {
+//            switch element.type {
+//            case .text:
+//                // 自動適應編輯狀態與材質紋理狀態
+//                MaterializedTextView(element: $element, brushImageName: "marker")
+//                
+//            case .sticker:
+//                Image(element.content)
+//                    .resizable()
+//                    .scaledToFit()
+//                    .frame(width: 80, height: 80)
+//                    .foregroundStyle(element.color)
+//                
+//            case .photo:
+//                if let rawImage = element.rawImage {
+//                    Image(uiImage: FilterProcessor.shared.applyFilter(to: rawImage, filterType: element.filter))
+//                        .resizable()
+//                        .scaledToFit()
+//                        .frame(width: 200)
+//                        .padding(10)
+//                        .padding(.bottom, 20)
+//                        .background(Color.white)
+//                }
+//                
+//            case .doodle:
+//                ModernDoodleCanvas(
+//                    strokes: element.doodleStrokes,
+//                    brushColor: element.color,
+//                    brushSize: 8,
+//                    brushImageName: "marker"
+//                )
+//                .frame(width: element.doodleSize.width, height: element.doodleSize.height)
+//                .contentShape(Rectangle())
+//            }
+//        }
+//        // 將原本壓在 switch 上的手勢與修飾符，全部打包移到這裡單獨推導！
+//        .padding(40)
+//        .contentShape(Rectangle())
+//        .scaleEffect(element.type == .text ? 1.0 : element.scale)
+//        .rotationEffect(element.rotation)
+//        .position(element.position)
+//        .gesture(
+//            isDrawingMode ? nil :
+//            DragGesture()
+//                .onChanged { value in
+//                    if !isDraggingElement {
+//                        isDraggingElement = true
+//                        draggingElementID = element.id
+//                        basePosition = element.position
+//                        selectedElementID = element.id
+//                        
+//                        if element.isEditing {
+//                            element.isEditing = false
+//                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+//                        }
+//                    }
+//                    element.position = CGPoint(
+//                        x: basePosition.x + value.translation.width,
+//                        y: basePosition.y + value.translation.height
+//                    )
+//                    if element.type == .photo {
+//                        clampPhotoGeometry(for: &element)
+//                    }
+//                    dragLocation = value.location
+//                }
+//                .onEnded { _ in
+//                    if isPointInTrashZone(dragLocation) {
+//                        // 這裡會在外部透過綁定處理刪除，或在外部透過通知觸發
+//                    }
+//                    isDraggingElement = false
+//                    draggingElementID = nil
+//                }
+//        )
+//        .gesture(
+//            isDrawingMode ? nil :
+//            SimultaneousGesture(
+//                MagnificationGesture()
+//                    .onChanged { value in
+//                        element.scale = element.lastScale * value
+//                        if element.type == .photo { clampPhotoGeometry(for: &element) }
+//                    }
+//                    .onEnded { _ in element.lastScale = element.scale },
+//                RotationGesture()
+//                    .onChanged { value in
+//                        element.rotation = element.lastRotation + value
+//                        if element.type == .photo { clampPhotoGeometry(for: &element) }
+//                    }
+//                    .onEnded { _ in element.lastRotation = element.rotation }
+//            )
+//        )
+//        .onTapGesture {
+//            if element.type == .text {
+//                element.isEditing = true
+//            }
+//            selectedToColorChangeElementID = element.id
+//        }
+//    }
+//    
+//    // 把相片幾何計算也移進來，分擔主 View 的程式碼權重
+//    private func clampPhotoGeometry(for element: inout CanvasElement) {
+//        let baseSize = element.type == .photo ? (element.rawImage != nil ? CGSize(width: 250, height: 260) : CGSize(width: 220, height: 220)) : CGSize.zero
+//        let theta = element.rotation.radians
+//        let cosT = abs(cos(theta)); let sinT = abs(sin(theta))
+//        let baseExtX = (baseSize.width / 2) * cosT + (baseSize.height / 2) * sinT
+//        let baseExtY = (baseSize.width / 2) * sinT + (baseSize.height / 2) * cosT
+//        let maxAllowedScale = min((360.0 / 2) / baseExtX, (640.0 / 2) / baseExtY)
+//        if element.scale > maxAllowedScale { element.scale = maxAllowedScale }
+//        if element.scale < 0.3 { element.scale = 0.3 }
+//        let extX = baseExtX * element.scale
+//        let extY = baseExtY * element.scale
+//        element.position.x = min(max(element.position.x, extX), 360.0 - extX)
+//        element.position.y = min(max(element.position.y, extY), 640.0 - extY)
+//    }
+//    
+//    private func isPointInTrashZone(_ point: CGPoint) -> Bool {
+//        return point.x >= 140 && point.x <= 220 && point.y >= 560
+//    }
+//}
+
+
 
 struct ShareItem: Identifiable {
     let id = UUID() // 確保每次生成的實例都有唯一的識別碼
@@ -294,11 +650,16 @@ struct MainCanvasView: View {
     
     // 塗鴉狀態控制
     @State private var isDrawingMode = false
-    @State private var currentStroke: [CGPoint] = []          // 🟢 目前手指正拖動、尚未放開的單一筆跡
-    @State private var sessionStrokes: [[CGPoint]] = []       // 🟢 這一輪塗鴉模式下，放開手指後累積的所有筆跡 (Undo 堆疊)
-    @State private var redoStrokesHistory: [[CGPoint]] = [] // 🟢 存放被撤銷筆跡的歷史紀錄 (Redo 堆疊)
+    @State private var currentStroke: [StrokePoint] = []
+    @State private var sessionStrokes: [[StrokePoint]] = []
+    @State private var redoStrokesHistory: [[StrokePoint]] = []
+//    @State private var currentStroke: [CGPoint] = []          // 🟢 目前手指正拖動、尚未放開的單一筆跡
+//    @State private var sessionStrokes: [[CGPoint]] = []       // 🟢 這一輪塗鴉模式下，放開手指後累積的所有筆跡 (Undo 堆疊)
+//    @State private var redoStrokesHistory: [[CGPoint]] = [] // 🟢 存放被撤銷筆跡的歷史紀錄 (Redo 堆疊)
     @State private var selectedDoodleColor: Color = .black
-    
+    // 幾何優化常數
+    private let minBrushStep: CGFloat = 1.5  // 效能優化：移動小於 1.5pt 則不重複繪製，壓制 Overdraw
+    private let maxBrushStep: CGFloat = 3.0 // 超過 3pt 就強制進行插值補點，一般速度下也能完美連續
     
     // 🟢 新增：用於控制是否正在導出圖片的狀態
     @State private var shareItem: ShareItem? = nil
@@ -515,9 +876,7 @@ struct MainCanvasView: View {
                 Group {
                     switch element.type {
                     case .text:
-                        if !element.isEditing {
-                            CanvasTextView(element: $element)
-                        }
+                        MaterializedTextView(element: $element, brushImageName: "marker")
                     case .sticker:
                         Image(element.content)
                             .resizable()
@@ -535,11 +894,12 @@ struct MainCanvasView: View {
                                 .background(Color.white)
                         }
                     case .doodle:
-                        DoodleShape(strokes: element.doodleStrokes)
-                            .stroke(
-                                element.color,
-                                style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
-                            )
+                        ModernDoodleCanvas(strokes: element.doodleStrokes, brushColor: element.color, brushSize: 8, brushImageName: "marker")
+//                        DoodleShape(strokes: element.doodleStrokes)
+//                            .stroke(
+//                                element.color,
+//                                style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+//                            )
                             .frame(width: element.doodleSize.width, height: element.doodleSize.height)
                             .contentShape(Rectangle())
                     }
@@ -626,15 +986,55 @@ struct MainCanvasView: View {
                     selectedToColorChangeElementID = element.id
                 }
             }
-            
+            // 🟢 超簡潔的渲染迴圈，編譯器再也不會崩潰！
+//            ForEach($elements) { $element in
+//                CanvasItemWrapper(
+//                    element: $element,
+//                    isExporting: isExporting,
+//                    isDrawingMode: isDrawingMode,
+//                    selectedElementID: $selectedElementID,
+//                    selectedToColorChangeElementID: $selectedToColorChangeElementID,
+//                    isDraggingElement: $isDraggingElement,
+//                    draggingElementID: $draggingElementID,
+//                    dragLocation: $dragLocation,
+//                    basePosition: $basePosition
+//                )
+//                .onChange(of: isDraggingElement) { _, newValue in
+//                    // 當手勢在 Wrapper 內部放開，且確認在垃圾桶內時，由主畫布移除
+//                    if !newValue && isPointInTrashZone(dragLocation) && draggingElementID == element.id {
+//                        elements.removeAll { $0.id == element.id }
+//                        selectedElementID = nil
+//                    }
+//                }
+//            }
             // 塗鴉手勢攔截層
+            // 塗鴉手勢與畫布渲染整合 (置於 canvasBody 內部的 ZStack 頂層)
             if isDrawingMode {
                 Color.clear
                     .contentShape(Rectangle())
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
-                                currentStroke.append(value.location)
+                                let newLocation = value.location
+                                
+                                guard let lastPoint = currentStroke.last else {
+                                    // 第一個點，角度設為 0
+                                    currentStroke.append(StrokePoint(location: newLocation, angle: .zero))
+                                    return
+                                }
+                                
+                                // 🟢 修正：不再使用 minBrushStep 剔除任何點！保留 100% 原始手指軌跡
+                                let dx = newLocation.x - lastPoint.location.x
+                                let dy = newLocation.y - lastPoint.location.y
+                                
+                                // 🟢 效能優化：限制極微小抖動不寫入（例如小於 1.0pt），壓制無效採樣
+                                if sqrt(dx*dx + dy*dy) < 1.0 { return }
+                                
+                                
+                                // 計算當前這一小段的切線角度
+                                let currentAngle = (dx == 0 && dy == 0) ? lastPoint.angle : Angle(radians: atan2(dy, dx))
+                                
+                                currentStroke.append(StrokePoint(location: newLocation, angle: currentAngle))
                             }
                             .onEnded { _ in
                                 if !currentStroke.isEmpty {
@@ -645,12 +1045,134 @@ struct MainCanvasView: View {
                             }
                     )
                 
-                DoodleShape(strokes: sessionStrokes + [currentStroke])
-                    .stroke(
-                        selectedDoodleColor,
-                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
-                    )
+                // 即時繪製畫布
+//                ModernDoodleCanvas(
+//                    strokes: sessionStrokes + [currentStroke],
+//                    brushColor: selectedDoodleColor,
+//                    brushSize: 8,
+//                    brushImageName: "marker" // 請確認 Assets 中的圖片名稱
+//                )
+                // 🟢 核心優化：畫的時候使用原生 Path 幾何進行硬體加速描邊，保證 100% 絕對流暢跟手、不掉幀
+                Canvas { context, size in
+                    for stroke in (sessionStrokes + [currentStroke]) {
+                        guard stroke.count > 0 else { continue }
+                        var path = Path()
+                        
+                        if stroke.count == 1 {
+                            path.addEllipse(in: CGRect(x: stroke[0].location.x - 6, y: stroke[0].location.y - 6, width: 12, height: 12))
+                            context.fill(path, with: .color(selectedDoodleColor))
+                        } else {
+                            path.move(to: stroke[0].location)
+                            
+                            if stroke.count == 2 {
+                                path.addLine(to: stroke[1].location)
+                            } else {
+                                for i in 1..<stroke.count - 1 {
+                                    let currentPoint = stroke[i].location
+                                    let nextPoint = stroke[i + 1].location
+                                    let midPoint = CGPoint(
+                                        x: (currentPoint.x + nextPoint.x) / 2,
+                                        y: (currentPoint.y + nextPoint.y) / 2
+                                    )
+                                    path.addQuadCurve(to: midPoint, control: currentPoint)
+                                }
+                                if let lastPoint = stroke.last {
+                                    path.addLine(to: lastPoint.location)
+                                }
+                            }
+                            // 用模擬麥克筆顏色的半透明或實色進行極速繪製
+                            context.stroke(
+                                path,
+                                with: .color(selectedDoodleColor),
+                                style: StrokeStyle(lineWidth: 8, lineCap: .round, lineJoin: .round)
+                            )
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity) // 🟢 確保寬高不為 0
+                .allowsHitTesting(false) // 🟢 讓 Canvas 不攔截手勢，確保觸控能穿透給下方的 DragGesture
             }
+//            if isDrawingMode {
+//                Color.clear
+//                    .contentShape(Rectangle())
+//                    .gesture(
+//                        DragGesture(minimumDistance: 0)
+//                            .onChanged { value in
+//                                let newLocation = value.location
+//                                
+//                                guard let lastPoint = currentStroke.last else {
+//                                    let firstPoint = StrokePoint(location: newLocation, angle: .zero)
+//                                    currentStroke.append(firstPoint)
+//                                    return
+//                                }
+//                                
+//                                let dx = newLocation.x - lastPoint.location.x
+//                                let dy = newLocation.y - lastPoint.location.y
+//                                let distance = sqrt(dx*dx + dy*dy)
+//                                
+//                                // 1. 步長控制：防止點過密導致 GPU 效能下降
+//                                if distance < minBrushStep { return }
+//                                
+//                                let currentAngle = Angle(radians: atan2(dy, dx))
+//                                
+//                                // 2. 線性插值：快速劃過時自動均勻補點
+//                                if distance > maxBrushStep {
+//                                    let steps = Int(distance / minBrushStep)
+//                                    for i in 1...steps {
+//                                        let t = CGFloat(i) / CGFloat(steps)
+//                                        let interpolatedLocation = CGPoint(
+//                                            x: lastPoint.location.x + dx * t,
+//                                            y: lastPoint.location.y + dy * t
+//                                        )
+//                                        let interpolatedAngle = lastPoint.angle + Angle(radians: (currentAngle.radians - lastPoint.angle.radians) * t)
+//                                        currentStroke.append(StrokePoint(location: interpolatedLocation, angle: interpolatedAngle))
+//                                    }
+//                                } else {
+//                                    currentStroke.append(StrokePoint(location: newLocation, angle: currentAngle))
+//                                }
+//                            }
+//                            .onEnded { _ in
+//                                if !currentStroke.isEmpty {
+//                                    sessionStrokes.append(currentStroke)
+//                                    currentStroke.removeAll()
+//                                    redoStrokesHistory.removeAll()
+//                                }
+//                            }
+//                    )
+//                
+//                // 即時繪製當前塗鴉（使用優化後的 Canvas）
+//                ModernDoodleCanvas(
+//                    strokes: sessionStrokes + [currentStroke],
+//                    brushColor: selectedDoodleColor,
+//                    brushSize: 8, // 3.5mm 平頭粗線建議設為 12，1.2mm 單線體設為 5
+//                    brushImageName: "marker"
+//                )
+//                .frame(maxWidth: .infinity, maxHeight: .infinity) // 🟢 確保寬高不為 0
+//                .allowsHitTesting(false) // 🟢 讓 Canvas 不攔截手勢，確保觸控能穿透給下方的 DragGesture
+//            }
+//            if isDrawingMode {
+//                Color.clear
+//                    .contentShape(Rectangle())
+//                    .gesture(
+//                        DragGesture(minimumDistance: 0)
+//                            .onChanged { value in
+//                                currentStroke.append(value.location)
+//                            }
+//                            .onEnded { _ in
+//                                if !currentStroke.isEmpty {
+//                                    sessionStrokes.append(currentStroke)
+//                                    currentStroke.removeAll()
+//                                    redoStrokesHistory.removeAll()
+//                                }
+//                            }
+//                    )
+//                
+//                DoodleShape(strokes: sessionStrokes + [currentStroke])
+//                    .stroke(
+//                        selectedDoodleColor,
+//                        style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round)
+//                    )
+//            }
         }
         .frame(width: 360, height: 640)
         .clipped()
@@ -724,34 +1246,85 @@ struct MainCanvasView: View {
 
     
     // 幾何座標轉換函數：將全螢幕軌跡打包為獨立邊界的元件
+//    private func convertSessionToDoodleElement() {
+//        // 若整個會話期都沒有畫任何筆跡，則不生成物件
+//        guard !sessionStrokes.isEmpty else { return }
+//        
+//        // 1. 攤平所有筆跡中的所有點，用以計算整體的邊界極值
+//        let allPoints = sessionStrokes.flatMap { $0 }
+//        let xs = allPoints.map { $0.x }
+//        let ys = allPoints.map { $0.y }
+//        
+//        guard let minX = xs.min(), let maxX = xs.max(),
+//              let minY = ys.min(), let maxY = ys.max() else { return }
+//        
+//        // 2. 計算此多筆跡複合元件的實際 Frame 寬高
+//        let width = max(20, maxX - minX)
+//        let height = max(20, maxY - minY)
+//        
+//        // 3. 計算此複合型 Frame 的幾何中心點位置
+//        let centerPoint = CGPoint(x: minX + width / 2, y: minY + height / 2)
+//        
+//        // 4. 坐標歸一化：遍歷所有筆跡，將其內部的絕對坐標點全部減去左上角極值 (minX, minY)
+//        // 轉換為相對於該組件內部 Frame 的相對區域坐標
+//        let normalizedStrokes = sessionStrokes.map { stroke in
+//            stroke.map { pt in
+//                CGPoint(x: pt.x - minX, y: pt.y - minY)
+//            }
+//        }
+//        
+//        // 5. 建立單一的 CanvasElement 元件並存入陣列
+//        let newDoodle = CanvasElement(
+//            type: .doodle,
+//            content: "",
+//            position: centerPoint,
+//            color: selectedDoodleColor,
+//            doodleStrokes: normalizedStrokes,
+//            doodleSize: CGSize(width: width, height: height)
+//        )
+//        
+//        elements.append(newDoodle)
+//        selectedElementID = newDoodle.id
+//        
+//        // 6. 清空此輪塗鴉會話期的暫存資料與重做歷史
+//        sessionStrokes.removeAll()
+//        redoStrokesHistory.removeAll()
+//    }
+    // 🔴 修改：傳入目前你畫布使用的筆刷大小（例如 5 或 12）
     private func convertSessionToDoodleElement() {
-        // 若整個會話期都沒有畫任何筆跡，則不生成物件
         guard !sessionStrokes.isEmpty else { return }
         
-        // 1. 攤平所有筆跡中的所有點，用以計算整體的邊界極值
         let allPoints = sessionStrokes.flatMap { $0 }
-        let xs = allPoints.map { $0.x }
-        let ys = allPoints.map { $0.y }
+        let xs = allPoints.map { $0.location.x }
+        let ys = allPoints.map { $0.location.y }
         
         guard let minX = xs.min(), let maxX = xs.max(),
               let minY = ys.min(), let maxY = ys.max() else { return }
         
-        // 2. 計算此多筆跡複合元件的實際 Frame 寬高
-        let width = max(20, maxX - minX)
-        let height = max(20, maxY - minY)
+        // 幾何修正：加入筆刷粗細的半徑作為安全襯墊 (Padding)
+        let brushRadius: CGFloat = 8.0 / 2.0 // 假設筆刷大小為 12
+        let paddedMinX = minX - brushRadius
+        let paddedMaxX = maxX + brushRadius
+        let paddedMinY = minY - brushRadius
+        let paddedMaxY = maxY + brushRadius
         
-        // 3. 計算此複合型 Frame 的幾何中心點位置
-        let centerPoint = CGPoint(x: minX + width / 2, y: minY + height / 2)
+        // 計算包含筆刷像素的完整寬高
+        let width = max(20, paddedMaxX - paddedMinX)
+        let height = max(20, paddedMaxY - paddedMinY)
         
-        // 4. 坐標歸一化：遍歷所有筆跡，將其內部的絕對坐標點全部減去左上角極值 (minX, minY)
-        // 轉換為相對於該組件內部 Frame 的相對區域坐標
+        // 計算幾何中心點位置
+        let centerPoint = CGPoint(x: paddedMinX + width / 2, y: paddedMinY + height / 2)
+        
+        // 坐標歸一化：所有點減去包含襯墊的左上角起點
         let normalizedStrokes = sessionStrokes.map { stroke in
             stroke.map { pt in
-                CGPoint(x: pt.x - minX, y: pt.y - minY)
+                StrokePoint(
+                    location: CGPoint(x: pt.location.x - paddedMinX, y: pt.location.y - paddedMinY),
+                    angle: pt.angle
+                )
             }
         }
         
-        // 5. 建立單一的 CanvasElement 元件並存入陣列
         let newDoodle = CanvasElement(
             type: .doodle,
             content: "",
@@ -764,10 +1337,12 @@ struct MainCanvasView: View {
         elements.append(newDoodle)
         selectedElementID = newDoodle.id
         
-        // 6. 清空此輪塗鴉會話期的暫存資料與重做歷史
         sessionStrokes.removeAll()
         redoStrokesHistory.removeAll()
     }
+    
+    
+    
     
     // 下方動態控制面板
     @ViewBuilder
