@@ -17,6 +17,7 @@
 		9A7E18B42FFD4EBD00A3CD15 /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18B32FFD4EBB00A3CD15 /* ActivityViewController.swift */; };
 		9A7E18B62FFD607A00A3CD15 /* Untitled 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18B52FFD607700A3CD15 /* Untitled 2.swift */; };
 		9A7E18B82FFE10B500A3CD15 /* eCardEdittingTemple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18B72FFE10AE00A3CD15 /* eCardEdittingTemple.swift */; };
+		9A84288A3005129C003A0D02 /* Untitled 3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8428893005129A003A0D02 /* Untitled 3.swift */; };
 		9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379002FE7DE6900FE6851 /* WallpapersView.swift */; };
 		9AA379032FE9204100FE6851 /* AdvertisementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379022FE9204100FE6851 /* AdvertisementView.swift */; };
 		9AA379052FE975F500FE6851 /* eCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA379042FE975F500FE6851 /* eCardHomeView.swift */; };
@@ -57,6 +58,7 @@
 		9A7E18B32FFD4EBB00A3CD15 /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		9A7E18B52FFD607700A3CD15 /* Untitled 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Untitled 2.swift"; sourceTree = "<group>"; };
 		9A7E18B72FFE10AE00A3CD15 /* eCardEdittingTemple.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eCardEdittingTemple.swift; sourceTree = "<group>"; };
+		9A8428893005129A003A0D02 /* Untitled 3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Untitled 3.swift"; sourceTree = "<group>"; };
 		9AA379002FE7DE6900FE6851 /* WallpapersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpapersView.swift; sourceTree = "<group>"; };
 		9AA379022FE9204100FE6851 /* AdvertisementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvertisementView.swift; sourceTree = "<group>"; };
 		9AA379042FE975F500FE6851 /* eCardHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eCardHomeView.swift; sourceTree = "<group>"; };
@@ -145,6 +147,7 @@
 		9A5B101C2FE7B5D4008449A0 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				9A8428893005129A003A0D02 /* Untitled 3.swift */,
 				9A7E18B52FFD607700A3CD15 /* Untitled 2.swift */,
 				9A7E18AB2FFCF8ED00A3CD15 /* tset.swift */,
 				9AB732292FF8110D001BD827 /* Untitled.swift */,
@@ -280,6 +283,7 @@
 				9AB732282FF668EA001BD827 /* TapeColorOption.swift in Sources */,
 				9A7E18B42FFD4EBD00A3CD15 /* ActivityViewController.swift in Sources */,
 				9AA3792E2FED5C6800FE6851 /* FontPickerToolbarModifier.swift in Sources */,
+				9A84288A3005129C003A0D02 /* Untitled 3.swift in Sources */,
 				9A7E18AC2FFCF8F800A3CD15 /* tset.swift in Sources */,
 				9AA379182FEBDCCC00FE6851 /* getDominantColor.swift in Sources */,
 				9AA3790D2FEA577800FE6851 /* CustomTabView.swift in Sources */,

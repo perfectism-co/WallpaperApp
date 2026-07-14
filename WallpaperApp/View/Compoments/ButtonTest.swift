@@ -47,8 +47,9 @@ struct ButtonTest: View {
                     
                     
                     Text("Hello, Liquid Glass")
-                        .glassEffect(in: .rect(cornerRadius: 16))           // 圓角矩形
-                        .glassEffect(in: .circle)
+                        .font(.title)
+                        .glassEffect(in: .rect(cornerRadius: 0))           // 圓角矩形
+                       // .glassEffect(in: .circle)
                     //        .glassEffect(in: RoundedRectangle(cornerRadius: .containerConcentric, style: .continuous))  // 與容器完美貼合
                     
                     
