@@ -123,15 +123,33 @@ func getBrushImageName(for color: Color) -> String {
     case Color("MarkerBlackColor"):
         return "mark-black"
     case .red:
-        return "rose-pink"
+        return "mark-blend-pink"
     case .blue:
-        return "mark-black"
+        return "mark-gray"
     case .green:
         return "pearlescent"
     case .orange:
-        return "mark-black"
+        return "mark-gray"
     default:
-        return "marker" // 預設防線
+        return "mark-r" // 預設防線
+    }
+}
+
+
+func getBrushBorderImageName(for color: Color) -> String {
+    switch color {
+    case Color("MarkerBlackColor"):
+        return "mark-black"
+    case .red:
+        return "mark-afa-pink"
+    case .blue:
+        return "mark-afa-silver"
+    case .green:
+        return "pearlescent"
+    case .orange:
+        return "mark-afa-gold"
+    default:
+        return "mark-r" // 預設防線
     }
 }
 
@@ -964,7 +982,9 @@ struct MainCanvasView: View {
         case .photo:
             if let uiImage = element.rawImage {
                 let baseWidth: CGFloat = 200
-                let aspectRatio = uiImage.size.height / uiImage.size.width
+                // 🟢 修正：使用 max(1.0, ...) 確保圖片寬度不為 0，防止除以零產生 NaN 導致元件消失
+                let safeImageWidth = max(1.0, uiImage.size.width)
+                let aspectRatio = uiImage.size.height / safeImageWidth
                 let baseHeight = baseWidth * aspectRatio
                 return CGSize(width: baseWidth + 50 , height: baseHeight + 40)
             }
@@ -1149,8 +1169,9 @@ struct MainCanvasView: View {
     }
 //  MARK: canvasBody 🟢 將畫布本體抽離成獨立函數，以便重複調用（正常顯示 vs 導出渲染）
     private func canvasBody(isExporting: Bool) -> some View {
-            ZStack {
-                
+        ZStack {
+            ZStack{
+                // A區
                 ZStack {
                     // 最底層不動的大背景圖
                     
@@ -1158,6 +1179,7 @@ struct MainCanvasView: View {
                     // 渲染常規無遮罩物體（黑/綠色塗鴉文字、相片、貼紙）
                     ForEach($elements) { $element in
                         let isMaskColor = (element.color == .red || element.color == .blue || element.color == .orange)
+                        //let isFColor = (element.color == .red)
                         
                         Group {
                             switch element.type {
@@ -1191,29 +1213,64 @@ struct MainCanvasView: View {
                                         .position(element.position)
                                 }
                             case .doodle:
-                                if !isMaskColor {
+                                if isMaskColor {
+                                    // 🟢 修正：每個元件只用「自己」的軌跡去裁剪「自己」的材質大圖
+                                    let textureName = getTextTextureImageName(for: element.color)
+                                    
+                                    ZStack {
+                                        Image(textureName)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 360, height: 640)
+                                            .allowsHitTesting(false)
+                                            .mask(
+                                                // 這裡移除內層的 ForEach，只丟入當前 element 的數據
+                                                ModernDoodleCanvas(strokes: element.doodleStrokes, brushSize: 8, brushImageName: getBrushImageName(for: element.color))
+                                                    .frame(width: element.doodleSize.width, height: element.doodleSize.height)
+                                                    .scaleEffect(element.scale)
+                                                    .rotationEffect(element.rotation)
+                                                    .position(element.position)
+                                                 
+                                            )
+                                        ModernDoodleCanvas(strokes: element.doodleStrokes, brushSize: 8, brushImageName: getBrushImageName(for: element.color))
+                                            .frame(width: element.doodleSize.width, height: element.doodleSize.height)
+                                            .scaleEffect(element.scale)
+                                            .rotationEffect(element.rotation)
+                                            .position(element.position)
+                                            .blendMode(.multiply)
+                                            
+                                    }
+                                    
+                                }
+    //                                else if isFColor {
+    //                                    // 每個元件只用「自己」的軌跡去裁剪「自己」的材質圖
+    //                                    let textureName = getTextTextureImageName(for: element.color)
+    //
+    //                                    Image(textureName)
+    //                                        .resizable()
+    //                                        .scaledToFill()
+    //                                        // 1. 將素材圖的容器大小設定為塗鴉的實際尺寸
+    //                                        .frame(width: element.doodleSize.width, height: element.doodleSize.height)
+    //                                        .clipped() // 裁切掉因 scaledToFill 超出 frame 的素材邊緣
+    //                                        .mask(
+    //                                            // 2. 遮罩用的 Canvas 尺寸需與素材圖一致，且不在此處進行座標轉換
+    //                                            ModernDoodleCanvas(strokes: element.doodleStrokes, brushSize: 8, brushImageName: getBrushImageName(for: element.color))
+    //                                                .frame(width: element.doodleSize.width, height: element.doodleSize.height)
+    //                                        )
+    //                                        .allowsHitTesting(false)
+    //                                        // 3. 將幾何轉換（縮放、旋轉、定位）套用在「已裁切完成」的整體視圖上
+    //                                        .scaleEffect(element.scale)
+    //                                        .rotationEffect(element.rotation)
+    //                                        .position(element.position)
+    //
+    //                                }
+                                else {
                                     ModernDoodleCanvas(strokes: element.doodleStrokes, brushSize: 8, brushImageName: getBrushImageName(for: element.color))
                                         .frame(width: element.doodleSize.width, height: element.doodleSize.height)
                                         .scaleEffect(element.scale)
                                         .rotationEffect(element.rotation)
                                         .position(element.position)
-                                }else {
-                                    // 🟢 修正：每個元件只用「自己」的軌跡去裁剪「自己」的材質大圖
-                                    let textureName = getTextTextureImageName(for: element.color)
                                     
-                                    Image(textureName)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 360, height: 640)
-                                        .allowsHitTesting(false)
-                                        .mask(
-                                            // 這裡移除內層的 ForEach，只丟入當前 element 的數據
-                                            ModernDoodleCanvas(strokes: element.doodleStrokes, brushSize: 8, brushImageName: getBrushImageName(for: element.color))
-                                                .frame(width: element.doodleSize.width, height: element.doodleSize.height)
-                                                .scaleEffect(element.scale)
-                                                .rotationEffect(element.rotation)
-                                                .position(element.position)
-                                        )
                                 }
                             }
                         }
@@ -1222,7 +1279,7 @@ struct MainCanvasView: View {
                     }
                 }
                 .allowsHitTesting(false) // 渲染層不攔截觸控
-                .coordinateSpace(name: "canvasSpace")
+                
                 
                 // ==========================================
                 // 架構 B: 互動層 (完全透明，專門接收手勢並連動數據)
@@ -1252,27 +1309,30 @@ struct MainCanvasView: View {
                                 .position(element.position)
                                 .gesture(
                                     isDrawingMode ? nil :
-                                    SimultaneousGesture(
-                                        MagnificationGesture()
-                                            .onChanged { value in
-                                                let newScale = element.lastScale * value
-                                                let minAllowedWidth: CGFloat = (element.type == .sticker) ? 40 : 60
-                                                let baseWidth = elementBaseSize(for: element).width
-                                                let minScaleLimit = minAllowedWidth / max(1, baseWidth)
-                                                element.scale = max(minScaleLimit, newScale)
-                                                if element.type == .photo { clampPhotoGeometry(for: &element) }
-                                            }
-                                            .onEnded { _ in element.lastScale = element.scale },
-                                        RotationGesture()
-                                            .onChanged { value in
-                                                element.rotation = element.lastRotation + value
-                                                if element.type == .photo { clampPhotoGeometry(for: &element) }
-                                            }
-                                            .onEnded { _ in element.lastRotation = element.rotation }
-                                    )
+                                        SimultaneousGesture(
+                                            MagnificationGesture()
+                                                .onChanged { value in
+                                                    let newScale = element.lastScale * value
+                                                    let minAllowedWidth: CGFloat = (element.type == .sticker) ? 40 : 60
+                                                    let baseWidth = elementBaseSize(for: element).width
+                                                    let minScaleLimit = minAllowedWidth / max(1, baseWidth)
+                                                    element.scale = max(minScaleLimit, newScale)
+                                                    clampElementGeometry(for: &element)
+                                                }
+                                                .onEnded { _ in element.lastScale = element.scale },
+                                            RotationGesture()
+                                                .onChanged { value in
+                                                    element.rotation = element.lastRotation + value
+                                                    clampElementGeometry(for: &element)
+                                                }
+                                                .onEnded { _ in element.lastRotation = element.rotation }
+                                        )
                                 )
-                            
-                            
+                        }
+                    }
+                    
+                    ForEach($elements) { $element in
+                        let baseSize = elementBaseSize(for: element)
                             Color.clear
                                 // 強制指定該物件的原始基準大小（會完美對應照片、貼紙或塗鴉的寬高）
                                 .frame(width: baseSize.width, height: baseSize.height)
@@ -1296,7 +1356,8 @@ struct MainCanvasView: View {
                                                 x: basePosition.x + value.translation.width,
                                                 y: basePosition.y + value.translation.height
                                            )
-                                            if element.type == .photo { clampPhotoGeometry(for: &element) }
+                                            // 🟢 修正：移除 if 條件限制，讓所有元件（Text, Sticker, Doodle, Photo）無條件執行統一限幅函數
+                                            clampElementGeometry(for: &element)
                                             dragLocation = value.location
                                         }
                                         .onEnded { _ in
@@ -1318,13 +1379,13 @@ struct MainCanvasView: View {
                                                 let baseWidth = elementBaseSize(for: element).width
                                                 let minScaleLimit = minAllowedWidth / max(1, baseWidth)
                                                 element.scale = max(minScaleLimit, newScale)
-                                                if element.type == .photo { clampPhotoGeometry(for: &element) }
+                                                clampElementGeometry(for: &element)
                                             }
                                             .onEnded { _ in element.lastScale = element.scale },
                                         RotationGesture()
                                             .onChanged { value in
                                                 element.rotation = element.lastRotation + value
-                                                if element.type == .photo { clampPhotoGeometry(for: &element) }
+                                                clampElementGeometry(for: &element)
                                             }
                                             .onEnded { _ in element.lastRotation = element.rotation }
                                     )
@@ -1334,143 +1395,224 @@ struct MainCanvasView: View {
                                     if element.type == .text { element.isEditing = true }
                                 }
                         }
-                        
-                       
-                    }
+                    
                 }
-
-
-            // MARK: 塗鴉手勢攔截層
-            // 塗鴉手勢與畫布渲染整合 (置於 canvasBody 內部的 ZStack 頂層)
-            if isDrawingMode {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                let newLocation = value.location
-                                
-                                guard let lastPoint = currentStroke.last else {
-                                    // 第一個點，角度設為 0
-                                    currentStroke.append(StrokePoint(location: newLocation, angle: .zero))
-                                    return
-                                }
-                                
-                                // 🟢 修正：不再使用 minBrushStep 剔除任何點！保留 100% 原始手指軌跡
-                                let dx = newLocation.x - lastPoint.location.x
-                                let dy = newLocation.y - lastPoint.location.y
-                                
-                                // 🟢 效能優化：限制極微小抖動不寫入（例如小於 1.0pt），壓制無效採樣
-                                if sqrt(dx*dx + dy*dy) < 1.0 { return }
-                                
-                                
-                                // 計算當前這一小段的切線角度
-                                let currentAngle = (dx == 0 && dy == 0) ? lastPoint.angle : Angle(radians: atan2(dy, dx))
-                                
-                                currentStroke.append(StrokePoint(location: newLocation, angle: currentAngle))
-                            }
-                            .onEnded { _ in
-                                if !currentStroke.isEmpty {
-                                    sessionStrokes.append(currentStroke)
-                                    currentStroke.removeAll()
-                                    redoStrokesHistory.removeAll()
-                                }
-                            }
-                    )
-                
-                // 🟢 核心優化：畫的時候使用原生 Path 幾何進行硬體加速描邊，保證 100% 絕對流暢跟手、不掉幀
-                Canvas { context, size in
-                    for stroke in (sessionStrokes + [currentStroke]) {
-                        guard stroke.count > 0 else { continue }
-                        var path = Path()
-                        
-                        if stroke.count == 1 {
-                            path.addEllipse(in: CGRect(x: stroke[0].location.x - 3.75, y: stroke[0].location.y - 3.75, width: 7.5, height: 7.5))
-                            context.fill(path, with: .color(selectedDoodleColor))
-                        } else {
-                            path.move(to: stroke[0].location)
-                            
-                            if stroke.count == 2 {
-                                path.addLine(to: stroke[1].location)
-                            } else {
-                                for i in 1..<stroke.count - 1 {
-                                    let currentPoint = stroke[i].location
-                                    let nextPoint = stroke[i + 1].location
-                                    let midPoint = CGPoint(
-                                        x: (currentPoint.x + nextPoint.x) / 2,
-                                        y: (currentPoint.y + nextPoint.y) / 2
-                                    )
-                                    path.addQuadCurve(to: midPoint, control: currentPoint)
-                                }
-                                if let lastPoint = stroke.last {
-                                    path.addLine(to: lastPoint.location)
-                                }
-                            }
-                            // 用模擬麥克筆顏色的半透明或實色進行極速繪製
-                            context.stroke(
-                                path,
-                                with: .color(selectedDoodleColor),
-                                style: StrokeStyle(lineWidth: 7.5, lineCap: .round, lineJoin: .round)
-                            )
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity) // 🟢 確保寬高不為 0
-                .allowsHitTesting(false) // 🟢 讓 Canvas 不攔截手勢，確保觸控能穿透給下方的 DragGesture
             }
+            .frame(width: 360, height: 640)
+            .coordinateSpace(name: "canvasSpace")
+
+        // MARK: 塗鴉手勢攔截層
+        // 塗鴉手勢與畫布渲染整合 (置於 canvasBody 內部的 ZStack 頂層)
+        if isDrawingMode {
+            Color.clear
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            let newLocation = value.location
+                            
+                            guard let lastPoint = currentStroke.last else {
+                                // 第一個點，角度設為 0
+                                currentStroke.append(StrokePoint(location: newLocation, angle: .zero))
+                                return
+                            }
+                            
+                            // 🟢 修正：不再使用 minBrushStep 剔除任何點！保留 100% 原始手指軌跡
+                            let dx = newLocation.x - lastPoint.location.x
+                            let dy = newLocation.y - lastPoint.location.y
+                            
+                            // 🟢 效能優化：限制極微小抖動不寫入（例如小於 1.0pt），壓制無效採樣
+                            if sqrt(dx*dx + dy*dy) < 1.0 { return }
+                            
+                            
+                            // 計算當前這一小段的切線角度
+                            let currentAngle = (dx == 0 && dy == 0) ? lastPoint.angle : Angle(radians: atan2(dy, dx))
+                            
+                            currentStroke.append(StrokePoint(location: newLocation, angle: currentAngle))
+                        }
+                        .onEnded { _ in
+                            if !currentStroke.isEmpty {
+                                sessionStrokes.append(currentStroke)
+                                currentStroke.removeAll()
+                                redoStrokesHistory.removeAll()
+                            }
+                        }
+                )
             
+            // 🟢 核心優化：畫的時候使用原生 Path 幾何進行硬體加速描邊，保證 100% 絕對流暢跟手、不掉幀
+            Canvas { context, size in
+                for stroke in (sessionStrokes + [currentStroke]) {
+                    guard stroke.count > 0 else { continue }
+                    var path = Path()
+                    
+                    if stroke.count == 1 {
+                        path.addEllipse(in: CGRect(x: stroke[0].location.x - 3.75, y: stroke[0].location.y - 3.75, width: 7.5, height: 7.5))
+                        context.fill(path, with: .color(selectedDoodleColor))
+                    } else {
+                        path.move(to: stroke[0].location)
+                        
+                        if stroke.count == 2 {
+                            path.addLine(to: stroke[1].location)
+                        } else {
+                            for i in 1..<stroke.count - 1 {
+                                let currentPoint = stroke[i].location
+                                let nextPoint = stroke[i + 1].location
+                                let midPoint = CGPoint(
+                                    x: (currentPoint.x + nextPoint.x) / 2,
+                                    y: (currentPoint.y + nextPoint.y) / 2
+                                )
+                                path.addQuadCurve(to: midPoint, control: currentPoint)
+                            }
+                            if let lastPoint = stroke.last {
+                                path.addLine(to: lastPoint.location)
+                            }
+                        }
+                        // 用模擬麥克筆顏色的半透明或實色進行極速繪製
+                        context.stroke(
+                            path,
+                            with: .color(selectedDoodleColor),
+                            style: StrokeStyle(lineWidth: 7.5, lineCap: .round, lineJoin: .round)
+                        )
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // 🟢 確保寬高不為 0
+            .allowsHitTesting(false) // 🟢 讓 Canvas 不攔截手勢，確保觸控能穿透給下方的 DragGesture
         }
+        
+    }
         .frame(width: 360, height: 640)
         .clipped()
     }
     
     
  // MARK: - clampPhotoGeometry 相片幾何限幅運算核心
-
-    private func clampPhotoGeometry(for element: inout CanvasElement) {
-        guard element.type == .photo else { return }
-        
+    /// 統一幾何限幅運算核心：對所有類型的畫布元件進行幾何邊界與縮放率的合法性檢查
+    private func clampElementGeometry(for element: inout CanvasElement) {
         let baseSize = elementBaseSize(for: element)
         let baseWidth = baseSize.width
         let baseHeight = baseSize.height
         
+        // 1. 異常狀態防禦 (NaN / Infinity 安全防護)
+        // 當發生異常手勢乘積導致幾何數值未定義或無限大時，強制重置為安全預設值，防止物件永久消失
+        guard baseWidth > 0, baseHeight > 0,
+              !element.scale.isNaN, !element.scale.isInfinite,
+              !element.position.x.isNaN, !element.position.y.isNaN else {
+            element.scale = 1.0
+            element.position = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
+            return
+        }
+        
+        // 2. 旋轉幾何投影計算
+        // 利用三角函數計算矩形旋轉特定的弧度 $\theta$ 後，投影在 X 軸與 Y 軸上的最大外擴半寬高基準值
         let theta = element.rotation.radians
         let cosT = abs(cos(theta))
         let sinT = abs(sin(theta))
         
-        // 計算矩形旋轉特定弧度 theta 後，投影在 X 軸與 Y 軸上的外擴最大半寬高
         let baseExtX = (baseWidth / 2) * cosT + (baseHeight / 2) * sinT
         let baseExtY = (baseWidth / 2) * sinT + (baseHeight / 2) * cosT
         
-        // 依據畫布可視區 (360 x 640) 逆推當前角度下允許的最大縮放比率
-        let maxScaleX = (canvasSize.width / 2) / baseExtX
-        let maxScaleY = (canvasSize.height / 2) / baseExtY
-        let maxAllowedScale = min(maxScaleX, maxScaleY)
-        
-        if element.scale > maxAllowedScale {
-            element.scale = maxAllowedScale
+        // 3. 縮放比率限幅 (Scale Clamping) 分流管理
+        switch element.type {
+        case .photo:
+            // 相片元件：維持嚴格定義，最大尺寸不可超過畫布邊界
+            let maxScaleX = (canvasSize.width / 2) / max(1.0, baseExtX)
+            let maxScaleY = (canvasSize.height / 2) / max(1.0, baseExtY)
+            let maxAllowedScale = min(maxScaleX, maxScaleY)
+            
+            // 限制相片縮放區間為 [0.3, maxAllowedScale]
+            element.scale = min(max(element.scale, 0.3), max(0.3, maxAllowedScale))
+            
+        case .text, .sticker, .doodle:
+            // 文字、貼紙、塗鴉元件：允許使用者自由放大進行視覺強調，但設定固定的上下限防線
+            // 限制縮放區間為 [0.2, 5.0]，防止極端縮放導致圖層渲染崩潰
+            element.scale = min(max(element.scale, 0.2), 5.0)
         }
-        if element.scale < 0.3 {
-            element.scale = 0.3
-        }
         
-        // 算出最終確定縮放值後的外擴真實半寬高
+        // 4. 位置邊界限幅 (Position Clamping) 分流管理
         let extX = baseExtX * element.scale
         let extY = baseExtY * element.scale
         
-        // 設定中心點 position 坐標的安全可移動邊界區間
-        let minX = extX
-        let maxX = canvasSize.width - extX
-        let minY = extY
-        let maxY = canvasSize.height - extY
-        
-        element.position.x = min(max(element.position.x, minX), maxX)
-        element.position.y = min(max(element.position.y, minY), maxY)
+        switch element.type {
+        case .photo:
+            // 相片元件：嚴格包含體積限制，任何像素皆不得超出畫布可視區 (360 x 640)
+            let minX = extX
+            let maxX = canvasSize.width - extX
+            let minY = extY
+            let maxY = canvasSize.height - extY
+            
+            if minX <= maxX {
+                element.position.x = min(max(element.position.x, minX), maxX)
+            } else {
+                element.position.x = canvasSize.width / 2
+            }
+            
+            if minY <= maxY {
+                element.position.y = min(max(element.position.y, minY), maxY)
+            } else {
+                element.position.y = canvasSize.height / 2
+            }
+            
+        case .text, .sticker, .doodle:
+            // 非相片元件：考量排版彈性，允許元件局部超出畫布（例如文字局部貼邊）
+            // 幾何約束：元件中心點最大位移邊界為畫布外擴半個元件體積的距離，保證畫面上至少保留可觸控的局部邊緣，絕不失聯
+            let marginX = extX * 0.5
+            let marginY = extY * 0.5
+            
+            let minX = -marginX
+            let maxX = canvasSize.width + marginX
+            let minY = -marginY
+            let maxY = canvasSize.height + marginY
+            
+            element.position.x = min(max(element.position.x, minX), maxX)
+            element.position.y = min(max(element.position.y, minY), maxY)
+        }
     }
+//    private func clampPhotoGeometry(for element: inout CanvasElement) {
+//        guard element.type == .photo else { return }
+//        
+//        let baseSize = elementBaseSize(for: element)
+//        let baseWidth = baseSize.width
+//        let baseHeight = baseSize.height
+//        
+//        let theta = element.rotation.radians
+//        let cosT = abs(cos(theta))
+//        let sinT = abs(sin(theta))
+//        
+//        // 計算矩形旋轉特定弧度 theta 後，投影在 X 軸與 Y 軸上的外擴最大半寬高
+//        let baseExtX = (baseWidth / 2) * cosT + (baseHeight / 2) * sinT
+//        let baseExtY = (baseWidth / 2) * sinT + (baseHeight / 2) * cosT
+//        
+//        // 依據畫布可視區 (360 x 640) 逆推當前角度下允許的最大縮放比率
+//        let maxScaleX = (canvasSize.width / 2) / baseExtX
+//        let maxScaleY = (canvasSize.height / 2) / baseExtY
+//        let maxAllowedScale = min(maxScaleX, maxScaleY)
+//        
+//        if element.scale > maxAllowedScale {
+//            element.scale = maxAllowedScale
+//        }
+//        if element.scale < 0.3 {
+//            element.scale = 0.3
+//        }
+//        
+//        // 算出最終確定縮放值後的外擴真實半寬高
+//        let extX = baseExtX * element.scale
+//        let extY = baseExtY * element.scale
+//        
+//        // 設定中心點 position 坐標的安全可移動邊界區間
+//        let minX = extX
+//        let maxX = canvasSize.width - extX
+//        let minY = extY
+//        let maxY = canvasSize.height - extY
+//        
+//        element.position.x = min(max(element.position.x, minX), maxX)
+//        element.position.y = min(max(element.position.y, minY), maxY)
+//    }
+
     
-   
     
- // MARK: - isPointInTrashZone 刪除區域判斷
+    
+// // MARK: - isPointInTrashZone 刪除區域判斷
     private func isPointInTrashZone(_ point: CGPoint) -> Bool {
         // 1. 定義垃圾桶判定區塊的寬高尺寸
         let trashWidth: CGFloat = 80
