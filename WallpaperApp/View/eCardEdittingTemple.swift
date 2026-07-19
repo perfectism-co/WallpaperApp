@@ -131,7 +131,7 @@ func getBrushImageName(for color: Color) -> String {
     case .orange:
         return "mark-gray"
     default:
-        return "mark-r" // 預設防線
+        return "mark-black" // 預設防線
     }
 }
 
@@ -1351,154 +1351,7 @@ struct MainCanvasView: View {
                             .position(element.position)
                     
                     }
-//                    ForEach($elements) { $element in
-//                        let baseSize = elementBaseSize(for: element)
-//                        let appliedScale = element.type == .text ? 1.0 : max(0.01, element.scale)
-//                        
-//                        Color.clear
-//                            // 🟢 修正：尺寸完全貼合本體，0pt 額外擴張，絕不互相遮擋
-//                            .frame(width: baseSize.width, height: baseSize.height)
-//                            .contentShape(Rectangle())
-//                            .scaleEffect(appliedScale)
-//                            .rotationEffect(element.rotation)
-//                            .position(element.position)
-//                            // 維持原有的拖曳手勢 (單指)
-//                            .gesture(
-//                                isDrawingMode ? nil :
-//                                DragGesture(coordinateSpace: .named("canvasSpace"))
-//                                    .onChanged { value in
-//                                        if !isDraggingElement {
-//                                            isDraggingElement = true
-//                                            draggingElementID = element.id
-//                                            basePosition = element.position
-//                                            selectedElementID = element.id // 拖曳時自動選取
-//                                            if element.isEditing { element.isEditing = false }
-//                                        }
-//                                        element.position = CGPoint(
-//                                            x: basePosition.x + value.translation.width,
-//                                            y: basePosition.y + value.translation.height
-//                                        )
-//                                        clampElementGeometry(for: &element)
-//                                        dragLocation = value.location
-//                                    }
-//                                    .onEnded { _ in
-//                                        if isPointInTrashZone(dragLocation) {
-//                                            elements.removeAll { $0.id == draggingElementID }
-//                                            selectedElementID = nil
-//                                        }
-//                                        isDraggingElement = false
-//                                        draggingElementID = nil
-//                                    }
-//                            )
-//                            // 維持原有的點擊手勢 (單指)
-//                            .onTapGesture {
-//                                selectedElementID = element.id
-//                                selectedToColorChangeElementID = element.id
-//                                if element.type == .text { element.isEditing = true }
-//                            }
-//                    }
-//                    ForEach($elements) { $element in
-//                        let baseSize = elementBaseSize(for: element)
-//                        ZStack {
-//                            // 【核心修正】放棄使用 Text，改用純粹的透明矩形作為觸控熱區
-//                            Color.clear
-//                            // 透過將外擴寬度逆向除以 scale，確保不論物件縮得再小，外圈物理大小在螢幕上永遠固定為 60pt
-//                                .frame(
-//                                    width: (baseSize.width + 60 * 2),
-//                                    height: (baseSize.height + 60 * 2)
-//                                )
-//                                .contentShape(Rectangle())
-//                                .scaleEffect(element.type == .text ? 1.0 : element.scale)
-//                                .rotationEffect(element.rotation)
-//                                .position(element.position)
-//                                .gesture(
-//                                    isDrawingMode ? nil :
-//                                        SimultaneousGesture(
-//                                            MagnificationGesture()
-//                                                .onChanged { value in
-//                                                    let newScale = element.lastScale * value
-//                                                    let minAllowedWidth: CGFloat = (element.type == .sticker) ? 40 : 60
-//                                                    let baseWidth = elementBaseSize(for: element).width
-//                                                    let minScaleLimit = minAllowedWidth / max(1, baseWidth)
-//                                                    element.scale = max(minScaleLimit, newScale)
-//                                                    clampElementGeometry(for: &element)
-//                                                }
-//                                                .onEnded { _ in element.lastScale = element.scale },
-//                                            RotationGesture()
-//                                                .onChanged { value in
-//                                                    element.rotation = element.lastRotation + value
-//                                                    clampElementGeometry(for: &element)
-//                                                }
-//                                                .onEnded { _ in element.lastRotation = element.rotation }
-//                                        )
-//                                )
-//                        }
-//                    }
-//                    
-//                    ForEach($elements) { $element in
-//                        let baseSize = elementBaseSize(for: element)
-//                            Color.clear
-//                                // 強制指定該物件的原始基準大小（會完美對應照片、貼紙或塗鴉的寬高）
-//                                .frame(width: baseSize.width, height: baseSize.height)
-//                                // 確保即使是完全透明的 Color.clear，整個矩形區域也能 100% 接收點擊
-//                                .contentShape(Rectangle())
-//                                .scaleEffect(element.type == .text ? 1.0 : element.scale)
-//                                .rotationEffect(element.rotation)
-//                                .position(element.position)
-//                                .gesture(
-//                                    isDrawingMode ? nil :
-//                                    DragGesture(coordinateSpace: .named("canvasSpace"))
-//                                        .onChanged { value in
-//                                            if !isDraggingElement {
-//                                                isDraggingElement = true
-//                                                draggingElementID = element.id
-//                                                basePosition = element.position
-//                                                selectedElementID = element.id
-//                                                if element.isEditing { element.isEditing = false }
-//                                            }
-//                                            element.position = CGPoint(
-//                                                x: basePosition.x + value.translation.width,
-//                                                y: basePosition.y + value.translation.height
-//                                           )
-//                                            // 🟢 修正：移除 if 條件限制，讓所有元件（Text, Sticker, Doodle, Photo）無條件執行統一限幅函數
-//                                            clampElementGeometry(for: &element)
-//                                            dragLocation = value.location
-//                                        }
-//                                        .onEnded { _ in
-//                                            if isPointInTrashZone(dragLocation) {
-//                                                elements.removeAll { $0.id == draggingElementID }
-//                                                selectedElementID = nil
-//                                            }
-//                                            isDraggingElement = false
-//                                            draggingElementID = nil
-//                                        }
-//                                )
-//                                .gesture(
-//                                    isDrawingMode ? nil :
-//                                    SimultaneousGesture(
-//                                        MagnificationGesture()
-//                                            .onChanged { value in
-//                                                let newScale = element.lastScale * value
-//                                                let minAllowedWidth: CGFloat = (element.type == .sticker) ? 40 : 60
-//                                                let baseWidth = elementBaseSize(for: element).width
-//                                                let minScaleLimit = minAllowedWidth / max(1, baseWidth)
-//                                                element.scale = max(minScaleLimit, newScale)
-//                                                clampElementGeometry(for: &element)
-//                                            }
-//                                            .onEnded { _ in element.lastScale = element.scale },
-//                                        RotationGesture()
-//                                            .onChanged { value in
-//                                                element.rotation = element.lastRotation + value
-//                                                clampElementGeometry(for: &element)
-//                                            }
-//                                            .onEnded { _ in element.lastRotation = element.rotation }
-//                                    )
-//                                )
-//                                .onTapGesture {
-//                                    selectedToColorChangeElementID = element.id
-//                                    if element.type == .text { element.isEditing = true }
-//                                }
-//                        }
+
                     
                 }
             }
@@ -1607,6 +1460,22 @@ struct MainCanvasView: View {
                                 path.addLine(to: lastPoint.location)
                             }
                         }
+                        // 🟢 用遮罩：正確的畫布內遮罩繪製邏輯
+//                        let textureName = getTextTextureImageName(for: selectedDoodleColor)
+//                        let strokeStyle = StrokeStyle(lineWidth: 7.5, lineCap: .round, lineJoin: .round)
+//                        
+//                        // 1. 將線條路徑轉化為具有厚度的實體形狀路徑
+//                        let strokedPath = path.strokedPath(strokeStyle)
+//                        
+//                        // 2. 開闢獨立圖層進行裁剪與底圖繪製，避免干擾其他未隔離的繪製流程
+//                        context.drawLayer { layerContext in
+//                            // 3. 將繪製範圍限制在筆跡內
+//                            layerContext.clip(to: strokedPath)
+//                            
+//                            // 4. 解析材質圖片並渲染至 Canvas 相同尺寸範圍
+//                            let resolvedImage = layerContext.resolve(Image(textureName))
+//                            layerContext.draw(resolvedImage, in: CGRect(origin: .zero, size: size))
+//                        }
                         // 用模擬麥克筆顏色的半透明或實色進行極速繪製
                         context.stroke(
                             path,

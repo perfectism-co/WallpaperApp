@@ -12,8 +12,10 @@ struct WallpaperAppApp: App {
     var body: some Scene {
         WindowGroup {
             //RootContainerView() // 這是 App 的真正進入點（內部已包含環境注入）
-            MainCanvasView()
+            //MainCanvasView()
             //MaskCanvasView()
+            //FilterTest()
+            FilterAutoTest()
         }
     }
 }

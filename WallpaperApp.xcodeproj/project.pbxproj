@@ -10,6 +10,20 @@
 		9A5B10142FE6D263008449A0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9A5B10102FE6D263008449A0 /* Assets.xcassets */; };
 		9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B10122FE6D263008449A0 /* WallpaperAppApp.swift */; };
 		9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B10172FE6D833008449A0 /* AppRouteManager.swift */; };
+		9A79FC5B300A35B60071C8DF /* food_filter_lut.png in Resources */ = {isa = PBXBuildFile; fileRef = 9A79FC56300A35B60071C8DF /* food_filter_lut.png */; };
+		9A79FC5D300A363A0071C8DF /* LUTFilterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC5C300A36380071C8DF /* LUTFilterManager.swift */; };
+		9A79FC5F300A36830071C8DF /* FilterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC5E300A36830071C8DF /* FilterTest.swift */; };
+		9A79FC65300A85620071C8DF /* gray_filter_lut.png in Resources */ = {isa = PBXBuildFile; fileRef = 9A79FC64300A85620071C8DF /* gray_filter_lut.png */; };
+		9A79FC69300B1CAD0071C8DF /* abundFaceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC68300B1CAB0071C8DF /* abundFaceDetector.swift */; };
+		9A79FC6B300B1D0F0071C8DF /* FaceDetectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC6A300B1D0D0071C8DF /* FaceDetectionView.swift */; };
+		9A79FC6F300B2C5F0071C8DF /* FaceDodgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC6E300B2C5D0071C8DF /* FaceDodgeManager.swift */; };
+		9A79FC71300B2C710071C8DF /* FaceLightingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC70300B2C710071C8DF /* FaceLightingView.swift */; };
+		9A79FC73300B34920071C8DF /* FaceDetectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC72300B34840071C8DF /* FaceDetectionManager.swift */; };
+		9A79FC75300B34D50071C8DF /* FaceRestoTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC74300B34D50071C8DF /* FaceRestoTest.swift */; };
+		9A79FC77300B35E80071C8DF /* FaceRostoProfolitTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC76300B35E80071C8DF /* FaceRostoProfolitTest.swift */; };
+		9A79FC79300B36DF0071C8DF /* FilterAutoTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC78300B36DF0071C8DF /* FilterAutoTest.swift */; };
+		9A79FC7D300B61550071C8DF /* resto_people_filter_lut.png in Resources */ = {isa = PBXBuildFile; fileRef = 9A79FC7C300B61550071C8DF /* resto_people_filter_lut.png */; };
+		9A79FC7F300B89A50071C8DF /* checkIsDominantColorDarkBrown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A79FC7E300B89A30071C8DF /* checkIsDominantColorDarkBrown.swift */; };
 		9A7E189B2FF8F4D000A3CD15 /* eCardEdittingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E189A2FF8F4D000A3CD15 /* eCardEdittingView.swift */; };
 		9A7E18A82FFCF26000A3CD15 /* CardComponentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18A72FFCF24800A3CD15 /* CardComponentType.swift */; };
 		9A7E18AA2FFCF28300A3CD15 /* UICardEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7E18A92FFCF28200A3CD15 /* UICardEditorView.swift */; };
@@ -51,6 +65,20 @@
 		9A5B10102FE6D263008449A0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9A5B10122FE6D263008449A0 /* WallpaperAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperAppApp.swift; sourceTree = "<group>"; };
 		9A5B10172FE6D833008449A0 /* AppRouteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouteManager.swift; sourceTree = "<group>"; };
+		9A79FC56300A35B60071C8DF /* food_filter_lut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = food_filter_lut.png; sourceTree = "<group>"; };
+		9A79FC5C300A36380071C8DF /* LUTFilterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LUTFilterManager.swift; sourceTree = "<group>"; };
+		9A79FC5E300A36830071C8DF /* FilterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterTest.swift; sourceTree = "<group>"; };
+		9A79FC64300A85620071C8DF /* gray_filter_lut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gray_filter_lut.png; sourceTree = "<group>"; };
+		9A79FC68300B1CAB0071C8DF /* abundFaceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = abundFaceDetector.swift; sourceTree = "<group>"; };
+		9A79FC6A300B1D0D0071C8DF /* FaceDetectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceDetectionView.swift; sourceTree = "<group>"; };
+		9A79FC6E300B2C5D0071C8DF /* FaceDodgeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceDodgeManager.swift; sourceTree = "<group>"; };
+		9A79FC70300B2C710071C8DF /* FaceLightingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceLightingView.swift; sourceTree = "<group>"; };
+		9A79FC72300B34840071C8DF /* FaceDetectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceDetectionManager.swift; sourceTree = "<group>"; };
+		9A79FC74300B34D50071C8DF /* FaceRestoTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceRestoTest.swift; sourceTree = "<group>"; };
+		9A79FC76300B35E80071C8DF /* FaceRostoProfolitTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceRostoProfolitTest.swift; sourceTree = "<group>"; };
+		9A79FC78300B36DF0071C8DF /* FilterAutoTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterAutoTest.swift; sourceTree = "<group>"; };
+		9A79FC7C300B61550071C8DF /* resto_people_filter_lut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = resto_people_filter_lut.png; sourceTree = "<group>"; };
+		9A79FC7E300B89A30071C8DF /* checkIsDominantColorDarkBrown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = checkIsDominantColorDarkBrown.swift; sourceTree = "<group>"; };
 		9A7E189A2FF8F4D000A3CD15 /* eCardEdittingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eCardEdittingView.swift; sourceTree = "<group>"; };
 		9A7E18A72FFCF24800A3CD15 /* CardComponentType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardComponentType.swift; sourceTree = "<group>"; };
 		9A7E18A92FFCF28200A3CD15 /* UICardEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICardEditorView.swift; sourceTree = "<group>"; };
@@ -118,6 +146,7 @@
 		9A5B10132FE6D263008449A0 /* WallpaperApp */ = {
 			isa = PBXGroup;
 			children = (
+				9A79FC55300A35710071C8DF /* LUT */,
 				9AA3792A2FED2C1100FE6851 /* Info.plist */,
 				9AA3791D2FED293900FE6851 /* Fonts */,
 				9AB732262FF668B4001BD827 /* Model */,
@@ -132,6 +161,7 @@
 		9A5B10192FE6D865008449A0 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				9A79FC7E300B89A30071C8DF /* checkIsDominantColorDarkBrown.swift */,
 				9A7E18B32FFD4EBB00A3CD15 /* ActivityViewController.swift */,
 				9A7E18A92FFCF28200A3CD15 /* UICardEditorView.swift */,
 				9AB732202FF41303001BD827 /* PhotoUploadViewController.swift */,
@@ -147,6 +177,7 @@
 		9A5B101C2FE7B5D4008449A0 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				9A79FC6A300B1D0D0071C8DF /* FaceDetectionView.swift */,
 				9A8428893005129A003A0D02 /* Untitled 3.swift */,
 				9A7E18B52FFD607700A3CD15 /* Untitled 2.swift */,
 				9A7E18AB2FFCF8ED00A3CD15 /* tset.swift */,
@@ -162,8 +193,23 @@
 				9AA3791B2FED273F00FE6851 /* IGTextEditorView.swift */,
 				9AA379372FF13CD400FE6851 /* CardDesign.swift */,
 				9AB732222FF41723001BD827 /* PhotoUploadView.swift */,
+				9A79FC5E300A36830071C8DF /* FilterTest.swift */,
+				9A79FC70300B2C710071C8DF /* FaceLightingView.swift */,
+				9A79FC74300B34D50071C8DF /* FaceRestoTest.swift */,
+				9A79FC76300B35E80071C8DF /* FaceRostoProfolitTest.swift */,
+				9A79FC78300B36DF0071C8DF /* FilterAutoTest.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		9A79FC55300A35710071C8DF /* LUT */ = {
+			isa = PBXGroup;
+			children = (
+				9A79FC56300A35B60071C8DF /* food_filter_lut.png */,
+				9A79FC64300A85620071C8DF /* gray_filter_lut.png */,
+				9A79FC7C300B61550071C8DF /* resto_people_filter_lut.png */,
+			);
+			path = LUT;
 			sourceTree = "<group>";
 		};
 		9AA379102FEB649B00FE6851 /* Compoments */ = {
@@ -194,6 +240,10 @@
 		9AB732262FF668B4001BD827 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				9A79FC72300B34840071C8DF /* FaceDetectionManager.swift */,
+				9A79FC6E300B2C5D0071C8DF /* FaceDodgeManager.swift */,
+				9A79FC68300B1CAB0071C8DF /* abundFaceDetector.swift */,
+				9A79FC5C300A36380071C8DF /* LUTFilterManager.swift */,
 				9A7E18A72FFCF24800A3CD15 /* CardComponentType.swift */,
 				9AB732272FF668DF001BD827 /* TapeColorOption.swift */,
 			);
@@ -263,7 +313,10 @@
 			files = (
 				9AA379292FED2A2D00FE6851 /* Big-Snow.ttf in Resources */,
 				9AA379212FED297F00FE6851 /* ChenYuluoyan-2.0-Thin.ttf in Resources */,
+				9A79FC65300A85620071C8DF /* gray_filter_lut.png in Resources */,
 				9AA379262FED29F300FE6851 /* FlaemischeKanzleischrift.ttf in Resources */,
+				9A79FC7D300B61550071C8DF /* resto_people_filter_lut.png in Resources */,
+				9A79FC5B300A35B60071C8DF /* food_filter_lut.png in Resources */,
 				9AA379272FED29F300FE6851 /* StarPandaKidsBeta2.1.otf in Resources */,
 				9A5B10142FE6D263008449A0 /* Assets.xcassets in Resources */,
 			);
@@ -280,6 +333,7 @@
 				9AA379072FE98E7800FE6851 /* ButtonTest.swift in Sources */,
 				9A7E18B62FFD607A00A3CD15 /* Untitled 2.swift in Sources */,
 				9A5B10182FE6D833008449A0 /* AppRouteManager.swift in Sources */,
+				9A79FC7F300B89A50071C8DF /* checkIsDominantColorDarkBrown.swift in Sources */,
 				9AB732282FF668EA001BD827 /* TapeColorOption.swift in Sources */,
 				9A7E18B42FFD4EBD00A3CD15 /* ActivityViewController.swift in Sources */,
 				9AA3792E2FED5C6800FE6851 /* FontPickerToolbarModifier.swift in Sources */,
@@ -287,24 +341,34 @@
 				9A7E18AC2FFCF8F800A3CD15 /* tset.swift in Sources */,
 				9AA379182FEBDCCC00FE6851 /* getDominantColor.swift in Sources */,
 				9AA3790D2FEA577800FE6851 /* CustomTabView.swift in Sources */,
+				9A79FC6B300B1D0F0071C8DF /* FaceDetectionView.swift in Sources */,
 				9AB732232FF41723001BD827 /* PhotoUploadView.swift in Sources */,
 				9AA3791A2FEBFAA200FE6851 /* ColorThemeManager.swift in Sources */,
 				9AB732252FF41C26001BD827 /* CardPhoto.swift in Sources */,
 				9AA379162FEB92AD00FE6851 /* test2.swift in Sources */,
+				9A79FC69300B1CAD0071C8DF /* abundFaceDetector.swift in Sources */,
+				9A79FC77300B35E80071C8DF /* FaceRostoProfolitTest.swift in Sources */,
 				9A7E189B2FF8F4D000A3CD15 /* eCardEdittingView.swift in Sources */,
 				9AA379012FE7DE6900FE6851 /* WallpapersView.swift in Sources */,
 				9AA379142FEB8A1B00FE6851 /* Test.swift in Sources */,
 				9A7E18AA2FFCF28300A3CD15 /* UICardEditorView.swift in Sources */,
 				9AA379322FED5CD100FE6851 /* FontPickerToolbar.swift in Sources */,
 				9AA379052FE975F500FE6851 /* eCardHomeView.swift in Sources */,
+				9A79FC5F300A36830071C8DF /* FilterTest.swift in Sources */,
 				9AA3790B2FEA3B6700FE6851 /* CustomTabViewTest.swift in Sources */,
+				9A79FC79300B36DF0071C8DF /* FilterAutoTest.swift in Sources */,
+				9A79FC71300B2C710071C8DF /* FaceLightingView.swift in Sources */,
 				9A7E18A82FFCF26000A3CD15 /* CardComponentType.swift in Sources */,
 				9AA379122FEB6DCE00FE6851 /* GlassView.swift in Sources */,
 				9A7E18B82FFE10B500A3CD15 /* eCardEdittingTemple.swift in Sources */,
+				9A79FC73300B34920071C8DF /* FaceDetectionManager.swift in Sources */,
 				9A5B10162FE6D263008449A0 /* WallpaperAppApp.swift in Sources */,
 				9AB7322A2FF8110F001BD827 /* Untitled.swift in Sources */,
+				9A79FC75300B34D50071C8DF /* FaceRestoTest.swift in Sources */,
 				9AA379092FEA372900FE6851 /* CustomTabViewD.swift in Sources */,
 				9AB732212FF41336001BD827 /* PhotoUploadViewController.swift in Sources */,
+				9A79FC6F300B2C5F0071C8DF /* FaceDodgeManager.swift in Sources */,
+				9A79FC5D300A363A0071C8DF /* LUTFilterManager.swift in Sources */,
 				9AA3792C2FED5B4F00FE6851 /* FontManager.swift in Sources */,
 				9AA3791C2FED273F00FE6851 /* IGTextEditorView.swift in Sources */,
 				9AA379382FF13CD400FE6851 /* CardDesign.swift in Sources */,
