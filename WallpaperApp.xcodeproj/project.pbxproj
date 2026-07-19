@@ -212,6 +212,14 @@
 			path = LUT;
 			sourceTree = "<group>";
 		};
+		9A79FC80300C83600071C8DF /* x */ = {
+			isa = PBXGroup;
+			children = (
+				9A79FC68300B1CAB0071C8DF /* abundFaceDetector.swift */,
+			);
+			path = x;
+			sourceTree = "<group>";
+		};
 		9AA379102FEB649B00FE6851 /* Compoments */ = {
 			isa = PBXGroup;
 			children = (
@@ -240,9 +248,9 @@
 		9AB732262FF668B4001BD827 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				9A79FC80300C83600071C8DF /* x */,
 				9A79FC72300B34840071C8DF /* FaceDetectionManager.swift */,
 				9A79FC6E300B2C5D0071C8DF /* FaceDodgeManager.swift */,
-				9A79FC68300B1CAB0071C8DF /* abundFaceDetector.swift */,
 				9A79FC5C300A36380071C8DF /* LUTFilterManager.swift */,
 				9A7E18A72FFCF24800A3CD15 /* CardComponentType.swift */,
 				9AB732272FF668DF001BD827 /* TapeColorOption.swift */,
